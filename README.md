@@ -33,7 +33,7 @@ The system introduces **automatic item drops**, rarity-based assets, and craftin
 1. Users connect their blockchain wallet.  
 2. Every minute, new items are dropped and stored in the user’s inventory.  
 3. Users can trade items securely through smart contracts or list them on the marketplace.  
-4. Crafting allows combining items to generate rarer assets.  
+4. Crafting allows combining items to generate rarer assets.(Optional)  
 5. Chat, notifications, and leaderboards keep the experience interactive and social.  
 
 ---
@@ -51,18 +51,18 @@ The system introduces **automatic item drops**, rarity-based assets, and craftin
    git clone https://github.com/your-username/trading-platform.git
    cd trading-platform
 2. Install dependencies:
-
-npm install
+   ```bash
+   npm install
 
 
 3. Start the frontend:
-
-npm run dev
+   ```bash
+   npm run dev
 
 
 4. Deploy smart contracts (example with Hardhat):
-
-npx hardhat run scripts/deploy.js --network rinkeby
+   ```bash
+   npx hardhat run scripts/deploy.js --network rinkeby
 
 📌 Roadmap
 
@@ -75,8 +75,6 @@ npx hardhat run scripts/deploy.js --network rinkeby
  - Trade + smart contracts
 
  - Marketplace & auctions
-
- - Crafting mechanics
 
  - Chat & notifications
 
