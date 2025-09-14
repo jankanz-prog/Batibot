@@ -66,18 +66,18 @@ npx hardhat run scripts/deploy.js --network rinkeby
 
 📌 Roadmap
 
- - **Wallet integration
+ - Wallet integration
 
- - **Basic item drops
+ - Basic item drops
 
- - **Inventory system
+ - Inventory system
 
- - **Trade + smart contracts
+ - Trade + smart contracts
 
- - **Marketplace & auctions
+ - Marketplace & auctions
 
- - **Crafting mechanics
+ - Crafting mechanics
 
- - **Chat & notifications
+ - Chat & notifications
 
- - **Leaderboards and quests
+ - Leaderboards and quests
