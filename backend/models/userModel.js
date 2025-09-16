@@ -32,9 +32,13 @@ const User = sequelize.define('User', {
         validate: {
             len: [6, 255]
         }
+    },
+    wallet_address: {
+        type: DataTypes.STRING,
+        allowNull: true
     }
 }, {
-    tableName: 'users', // Explicitly set table name to lowercase
+    tableName: 'users',
     timestamps: true,
     hooks: {
         beforeCreate: async (user) => {
@@ -47,6 +51,7 @@ const User = sequelize.define('User', {
         }
     }
 });
+
 
 User.prototype.comparePassword = async function(password) {
     return await bcrypt.compare(password, this.password);

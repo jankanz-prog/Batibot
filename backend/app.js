@@ -2,6 +2,7 @@
 const express = require('express');
 const sequelize = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
+require('./models'); // This will load all models and associations
 
 const app = express();
 
