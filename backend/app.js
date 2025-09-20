@@ -9,7 +9,7 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000', // React dev server default
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173', // React dev server on Vite
     credentials: true,
     optionsSuccessStatus: 200,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -20,18 +20,26 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// Add logging middleware to debug requests
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path} - ${new Date().toISOString()}`);
+    console.log('Request body:', req.body);
+    next();
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 
 // Connect to database and start server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 sequelize.authenticate()
     .then(() => {
         console.log('PostgreSQL connected successfully');
-        return sequelize.sync(); // This creates tables if they don't exist
+        return sequelize.sync({ force: true }); // This drops and recreates all tables
     })
     .then(() => {
+        console.log('Database tables created successfully');
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
         });
