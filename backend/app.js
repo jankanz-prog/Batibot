@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
+const ItemGenerationService = require('./services/itemGenerationService');
 require('./models'); // This will load all models and associations
 
 const app = express();
@@ -40,6 +41,12 @@ sequelize.authenticate()
     })
     .then(() => {
         console.log('Database tables created successfully');
+
+        // Initialize and start item generation service
+
+        //const itemGenerator = new ItemGenerationService(); //uncomment this line if you want to start automatic item generation
+        //itemGenerator.startItemGeneration(); //uncomment this line if you want to start automatic item generation
+
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
         });

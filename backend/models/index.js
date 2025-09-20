@@ -11,12 +11,18 @@ const TrustScore = require('./trustScoreModel');
 const Notification = require('./notificationModel');
 const  Profile = require('./profileModel');
 const Note = require('./noteModel');
+const ItemRarity = require('./itemRarityModel');
 
-// Define associations
+
+// User Inventory associations
 User.hasOne(Inventory, { foreignKey: 'user_id' });
 Inventory.belongsTo(User, { foreignKey: 'user_id' });
 Inventory.belongsTo(Item, { foreignKey: 'item_id' });
 Item.hasMany(Inventory, { foreignKey: 'item_id' });
+
+//Item Associations
+Item.belongsTo(ItemRarity, { foreignKey: 'rarity_id', as: 'rarity' });
+ItemRarity.hasMany(Item, { foreignKey: 'rarity_id', as: 'Items' });
 
 //ChatMessage associations
 User.hasMany(ChatMessage, { foreignKey: 'sender_id', as: 'SentMessages' });
@@ -65,6 +71,7 @@ User.hasMany(Note, { foreignKey: 'user_id', as: 'Notes' });
 Note.belongsTo(User, { foreignKey: 'user_id', as: 'User' });
 
 
-module.exports = { User,
-    Inventory, Item, ChatMessage, MarketplaceListing, Trade, TradeItem, Wallet,
-    TrustScore, Notification, Profile, Note };
+module.exports = {
+    User, Inventory, Item, ItemRarity, ChatMessage, MarketplaceListing,
+    Trade, TradeItem, Wallet, TrustScore, Notification, Profile, Note
+};
