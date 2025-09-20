@@ -1,7 +1,7 @@
 // models/index.js
 const User = require('./userModel');
 const Inventory = require('./inventoryModel');
-const Item = require('./itemModel'); // Add this line
+const Item = require('./itemModel');
 const ChatMessage = require('./chatMessageModel');
 const MarketplaceListing = require('./marketplaceListingModel');
 const Trade = require('./tradeModel');
@@ -10,6 +10,7 @@ const Wallet = require('./walletModel');
 const TrustScore = require('./trustScoreModel');
 const Notification = require('./notificationModel');
 const  Profile = require('./profileModel');
+const Note = require('./noteModel');
 
 // Define associations
 User.hasOne(Inventory, { foreignKey: 'user_id' });
@@ -59,5 +60,11 @@ Notification.belongsTo(User, { foreignKey: 'user_id', as: 'User' });
 User.hasOne(Profile, { foreignKey: 'user_id', as: 'Profile' });
 Profile.belongsTo(User, { foreignKey: 'user_id', as: 'User' });
 
+// Note Associations
+User.hasMany(Note, { foreignKey: 'user_id', as: 'Notes' });
+Note.belongsTo(User, { foreignKey: 'user_id', as: 'User' });
 
-module.exports = { User, Inventory, Item, ChatMessage, MarketplaceListing, Trade, TradeItem, Wallet, TrustScore, Notification, Profile };
+
+module.exports = { User,
+    Inventory, Item, ChatMessage, MarketplaceListing, Trade, TradeItem, Wallet,
+    TrustScore, Notification, Profile, Note };

@@ -36,7 +36,7 @@ const PORT = process.env.PORT || 3001;
 sequelize.authenticate()
     .then(() => {
         console.log('PostgreSQL connected successfully');
-        return sequelize.sync({ force: true }); // This drops and recreates all tables
+        return sequelize.sync({ alter: true }); // Updates tables without losing data
     })
     .then(() => {
         console.log('Database tables created successfully');
