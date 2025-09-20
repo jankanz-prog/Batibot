@@ -12,7 +12,7 @@ const Notification = require('./notificationModel');
 const  Profile = require('./profileModel');
 
 // Define associations
-User.hasMany(Inventory, { foreignKey: 'user_id' });
+User.hasOne(Inventory, { foreignKey: 'user_id' });
 Inventory.belongsTo(User, { foreignKey: 'user_id' });
 Inventory.belongsTo(Item, { foreignKey: 'item_id' });
 Item.hasMany(Inventory, { foreignKey: 'item_id' });
