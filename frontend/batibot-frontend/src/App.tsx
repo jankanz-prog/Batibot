@@ -1,0 +1,17 @@
+import type React from "react"
+import { AuthProvider } from "./context/AuthContext"
+import { AppWithTokenRefresh } from "./components/AppWithTokenRefresh"
+import "./styles/auth.css" //"./styles/auth.css"
+import "./styles/layout.css" //"./src/styles/layout.css"
+import "./styles/notes.css"
+
+
+const App: React.FC = () => {
+    return (
+        <AuthProvider>
+            <AppWithTokenRefresh />
+        </AuthProvider>
+    )
+}
+
+export default App
