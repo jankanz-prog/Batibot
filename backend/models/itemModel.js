@@ -1,3 +1,4 @@
+// models/itemModel.js - Updated version
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -11,9 +12,13 @@ const Item = sequelize.define('Item', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    rarity: {
-        type: DataTypes.STRING,
-        allowNull: false
+    rarity_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'item_rarities',
+            key: 'rarity_id'
+        }
     },
     metadata_uri: {
         type: DataTypes.STRING,
@@ -26,8 +31,7 @@ const Item = sequelize.define('Item', {
     }
 }, {
     tableName: 'items',
-    timestamps: false // disables Sequelize's automatic createdAt/updatedAt
+    timestamps: false
 });
 
 module.exports = Item;
-

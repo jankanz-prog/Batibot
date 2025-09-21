@@ -1,4 +1,4 @@
-// models/userModel.js
+// models/userModel.js - Updated with role field
 const { DataTypes } = require('sequelize');
 const bcrypt = require('bcryptjs');
 const sequelize = require('../config/database');
@@ -33,6 +33,11 @@ const User = sequelize.define('User', {
             len: [6, 255]
         }
     },
+    role: {
+        type: DataTypes.ENUM('user', 'admin'),
+        allowNull: false,
+        defaultValue: 'user'
+    },
     wallet_address: {
         type: DataTypes.STRING,
         allowNull: true
@@ -51,7 +56,6 @@ const User = sequelize.define('User', {
         }
     }
 });
-
 
 User.prototype.comparePassword = async function(password) {
     return await bcrypt.compare(password, this.password);
