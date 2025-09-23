@@ -37,6 +37,18 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                                     Dashboard
                                 </button>
                                 <button
+                                    onClick={() => navigate('/trade')}
+                                    className={`nav-button ${location.pathname === '/trade' ? 'active' : ''}`}
+                                >
+                                    Trade
+                                </button>
+                                <button
+                                    onClick={() => navigate('/trade-offers')}
+                                    className={`nav-button ${location.pathname === '/trade-offers' ? 'active' : ''}`}
+                                >
+                                    Trade Offers
+                                </button>
+                                <button
                                     onClick={() => navigate('/notes')}
                                     className={`nav-button ${location.pathname === '/notes' ? 'active' : ''}`}
                                 >
