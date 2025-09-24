@@ -11,15 +11,11 @@ const app = express();
 // CORS configuration
 const corsOptions = {
     origin: (origin, callback) => {
-        const allowedOrigins = [
-            process.env.FRONTEND_URL || 'http://localhost:5173',
-            'http://localhost:5174'
-        ];
-
         // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
 
-        if (allowedOrigins.includes(origin)) {
+        // Allow localhost and 127.0.0.1 with any port for development
+        if (origin.match(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/)) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));

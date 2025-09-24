@@ -4,6 +4,9 @@ import { AppWithTokenRefresh } from "./components/AppWithTokenRefresh"
 import "./styles/auth.css" //"./styles/auth.css"
 import "./styles/layout.css" //"./src/styles/layout.css"
 import "./styles/notes.css"
+import "./styles/trade.css"
+import "./styles/trade-modal.css"
+import "./styles/trade-offers.css"
 
 
 const App: React.FC = () => {
