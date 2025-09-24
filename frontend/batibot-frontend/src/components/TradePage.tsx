@@ -13,9 +13,10 @@ interface TradeItem {
     percentage: number
     seller: string
     isStarred?: boolean
+    value: number
 }
 
-// Mock data for demonstration - replace with actual API calls
+// Mock data for demonstration
 const mockTradeItems: TradeItem[] = [
     {
         id: '1',
@@ -24,7 +25,8 @@ const mockTradeItems: TradeItem[] = [
         timeLeft: '3h 58m 19s',
         percentage: 1,
         seller: 'FERRAN',
-        isStarred: false
+        isStarred: false,
+        value: 45.50
     },
     {
         id: '2',
@@ -32,7 +34,8 @@ const mockTradeItems: TradeItem[] = [
         rarity: 'epic',
         timeLeft: '1h 58m 12s',
         percentage: 1,
-        seller: 'shadowworld92'
+        seller: 'shadowworld92',
+        value: 32.75
     },
     {
         id: '3',
@@ -40,7 +43,8 @@ const mockTradeItems: TradeItem[] = [
         rarity: 'uncommon',
         timeLeft: '3h 56m 46s',
         percentage: 2,
-        seller: 'Frend'
+        seller: 'Frend',
+        value: 8.50
     },
     {
         id: '4',
@@ -48,7 +52,8 @@ const mockTradeItems: TradeItem[] = [
         rarity: 'legendary',
         timeLeft: '3h 53m 6s',
         percentage: 3,
-        seller: 'Tricksie'
+        seller: 'Tricksie',
+        value: 125.00
     },
     {
         id: '5',
@@ -56,7 +61,8 @@ const mockTradeItems: TradeItem[] = [
         rarity: 'rare',
         timeLeft: '2h 53m 5s',
         percentage: 4,
-        seller: 'voxpop'
+        seller: 'voxpop',
+        value: 28.25
     },
     {
         id: '6',
@@ -64,7 +70,8 @@ const mockTradeItems: TradeItem[] = [
         rarity: 'epic',
         timeLeft: '1h 48m 44s',
         percentage: 5,
-        seller: 'MrKiller1001'
+        seller: 'MrKiller1001',
+        value: 67.80
     }
 ]
 
@@ -72,7 +79,7 @@ export const TradePage: React.FC = () => {
     const [selectedFilter, setSelectedFilter] = useState<'all' | 'starred'>('all')
     const [searchTerm, setSearchTerm] = useState('')
     const [isTradeModalOpen, setIsTradeModalOpen] = useState(false)
-    const [selectedTradeItem, setSelectedTradeItem] = useState<{ name: string; seller: string } | null>(null)
+    const [selectedTradeItem, setSelectedTradeItem] = useState<{ name: string; seller: string; value: number } | null>(null)
 
     const getRarityGradient = (rarity: string) => {
         switch (rarity) {
@@ -92,8 +99,8 @@ export const TradePage: React.FC = () => {
         return matchesSearch && matchesFilter
     })
 
-    const handleOfferTrade = (itemName: string, seller: string) => {
-        setSelectedTradeItem({ name: itemName, seller })
+    const handleOfferTrade = (itemName: string, seller: string, value: number) => {
+        setSelectedTradeItem({ name: itemName, seller, value })
         setIsTradeModalOpen(true)
     }
 
@@ -153,11 +160,12 @@ export const TradePage: React.FC = () => {
                             <h3 className="item-name">{item.name}</h3>
                             <p className="item-seller">By <span className="seller-name">{item.seller}</span></p>
                             <p className="item-time">Ending in {item.timeLeft}</p>
+                            <p className="item-value">${item.value.toFixed(2)}</p>
                             
                             <div className="item-actions">
                                 <button 
                                     className="offer-trade-btn"
-                                    onClick={() => handleOfferTrade(item.name, item.seller)}
+                                    onClick={() => handleOfferTrade(item.name, item.seller, item.value)}
                                 >
                                     Offer Trade
                                 </button>
@@ -180,6 +188,7 @@ export const TradePage: React.FC = () => {
                     onClose={closeTradeModal}
                     targetUser={selectedTradeItem.seller}
                     targetItem={selectedTradeItem.name}
+                    targetItemValue={selectedTradeItem.value}
                 />
             )}
         </div>

@@ -11,13 +11,30 @@ const app = express();
 // CORS configuration
 const corsOptions = {
     origin: (origin, callback) => {
+        const allowedOrigins = [
+            process.env.FRONTEND_URL || 'http://localhost:5173',
+            'http://localhost:5174',
+            'http://127.0.0.1:58516',
+            /^http:\/\/127\.0\.0\.1:\d+$/  // Allow any port on 127.0.0.1
+        ];
+
         // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
 
-        // Allow localhost and 127.0.0.1 with any port for development
-        if (origin.match(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/)) {
+        // Check if origin matches any allowed origins (including regex patterns)
+        const isAllowed = allowedOrigins.some(allowedOrigin => {
+            if (typeof allowedOrigin === 'string') {
+                return allowedOrigin === origin;
+            } else if (allowedOrigin instanceof RegExp) {
+                return allowedOrigin.test(origin);
+            }
+            return false;
+        });
+
+        if (isAllowed) {
             callback(null, true);
         } else {
+            console.log(`CORS blocked origin: ${origin}`);
             callback(new Error('Not allowed by CORS'));
         }
     },
