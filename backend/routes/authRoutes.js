@@ -1,10 +1,12 @@
 // routes/authRoutes.js
 const express = require('express');
-const {login, register, createAdmin, changePassword, authenticateToken, requireAdmin, verifyToken} = require('../controllers/authController');
-const { updateProfile,getProfile } = require("../controllers/profileController");
+const {login, register, createAdmin, changePassword, authenticateToken, requireAdmin, verifyToken, updateProfile} = require('../controllers/authController');
+const { getProfile } = require("../controllers/profileController");
+const { uploadProfilePicture, deleteProfilePicture } = require('../controllers/profileUploadController');
+const upload = require('../middleware/upload');
 const { getInventory, addItemToInventory, removeItemFromInventory } = require("../controllers/inventoryController");
 const { generateItemsManually } = require('../controllers/itemGenerationController');
-const { createNote, getAllNotes, getNoteById, updateNote, deleteNote} = require('../controllers/notesController');
+const { createNote, getAllNotes, getNoteById, updateNote, deleteNote, toggleFavorite} = require('../controllers/notesController');
 const {createItem, getAllItems, getItemById, updateItem, deleteItem} = require('../controllers/itemController');
 const { createRarity, getAllRarities} = require('../controllers/itemRarityController');
 
@@ -22,6 +24,10 @@ router.get('/verify-token', authenticateToken, verifyToken);
 router.put('/profile', authenticateToken, updateProfile);
 router.get('/profile', authenticateToken, getProfile);
 
+// Profile picture upload routes
+router.post('/profile-picture', authenticateToken, upload.single('profilePicture'), uploadProfilePicture);
+router.delete('/profile-picture', authenticateToken, deleteProfilePicture);
+
 //Inventory routes
 router.get('/inventory', authenticateToken, getInventory);
 router.post('/inventory', authenticateToken, addItemToInventory);
@@ -33,6 +39,7 @@ router.get('/notes', authenticateToken, getAllNotes);
 router.get('/notes/:id', authenticateToken, getNoteById);
 router.put('/notes/:id', authenticateToken, updateNote);
 router.delete('/notes/:id', authenticateToken, deleteNote);
+router.patch('/notes/:id/toggle-favorite', authenticateToken, toggleFavorite);
 
 // Item routes (admin only for create/update/delete)
 router.post('/items', authenticateToken, requireAdmin, createItem);

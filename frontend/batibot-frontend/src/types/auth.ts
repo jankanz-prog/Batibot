@@ -4,10 +4,12 @@ export interface User {
     email: string
     role: "user" | "admin"
     wallet_address?: string
+    profile_picture?: string | null
 }
 
 export interface LoginRequest {
-    email: string
+    email?: string
+    username?: string
     password: string
 }
 
@@ -44,6 +46,7 @@ export interface ProfileUpdateRequest {
     username?: string
     email?: string
     wallet_address?: string
+    profile_picture?: string | null
 }
 
 export interface ProfileResponse {

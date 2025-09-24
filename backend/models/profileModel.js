@@ -19,7 +19,13 @@ const Profile = sequelize.define('Profile', {
     },
     avatar_url: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true,
+        defaultValue: null
+    },
+    profile_picture: {
+        type: DataTypes.TEXT, // Store base64 encoded image or URL
+        allowNull: true,
+        defaultValue: null
     },
     bio: {
         type: DataTypes.TEXT,

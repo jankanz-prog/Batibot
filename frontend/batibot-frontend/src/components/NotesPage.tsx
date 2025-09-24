@@ -122,6 +122,21 @@ export const NotesPage: React.FC = () => {
         }
     }
 
+    const handleToggleFavorite = async (id: number) => {
+        if (!token) return
+        try {
+            setError(null)
+            const res = await notesAPI.toggleFavorite(id, token)
+            if (res.success) {
+                setNotes(prev => prev.map(n => (n.id === id ? res.data : n)))
+            } else {
+                setError(res.message || "Failed to toggle favorite")
+            }
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Failed to toggle favorite")
+        }
+    }
+
     const filteredNotes = notes.filter(n => {
         const term = searchTerm.toLowerCase()
         return (
@@ -341,6 +356,13 @@ export const NotesPage: React.FC = () => {
                                     {note.title}
                                 </h3>
                                 <div className="note-actions">
+                                    <button
+                                        className={`btn-icon favorite-btn ${note.favorited ? 'favorited' : ''}`}
+                                        onClick={() => handleToggleFavorite(note.id)}
+                                        title={note.favorited ? "Remove from favorites" : "Add to favorites"}
+                                    >
+                                        {note.favorited ? "★" : "☆"}
+                                    </button>
                                     <button className="btn btn-secondary" onClick={() => startEdit(note)}>
                                         Edit
                                     </button>
