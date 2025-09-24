@@ -62,6 +62,21 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                                 </button>
                             </nav>
 
+                            <div className="header-profile-picture">
+                                {user.profile_picture ? (
+                                    <img 
+                                        src={`http://localhost:3001${user.profile_picture}`} 
+                                        alt="Profile" 
+                                        onLoad={() => console.log('Layout - Image loaded successfully:', user.profile_picture)}
+                                        onError={(e) => console.error('Layout - Image failed to load:', user.profile_picture, e)}
+                                    />
+                                ) : (
+                                    <div className="header-profile-placeholder">
+                                        {user.username.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                            </div>
+
                             <span className="welcome-text">
                                 Welcome, {user.username}
                                 {isAdmin && <span className="admin-badge">Admin</span>}

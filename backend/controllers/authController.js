@@ -115,6 +115,21 @@ const login = async (req, res) => {
 
         const token = generateToken(user.id);
 
+        // Get profile picture separately
+        const profile = await Profile.findOne({ where: { user_id: user.id } });
+        
+        // Prioritize file paths over base64 data
+        let profilePicture = null;
+        if (profile?.profile_picture) {
+            if (profile.profile_picture.startsWith('/uploads/')) {
+                // Use file path
+                profilePicture = profile.profile_picture;
+            } else if (profile.profile_picture.startsWith('data:image/')) {
+                // Legacy base64 data - ignore it for now
+                profilePicture = null;
+            }
+        }
+
         res.status(200).json({
             success: true,
             message: 'Login successful',
@@ -123,7 +138,8 @@ const login = async (req, res) => {
                 id: user.id,
                 username: user.username,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                profile_picture: profilePicture
             }
         });
     } catch (error) {
@@ -234,6 +250,22 @@ const verifyToken = async (req, res) => {
     try {
         // The authenticateToken middleware already validates the token
         // and sets req.user, so we just need to return the user data
+        
+        // Get profile picture separately
+        const profile = await Profile.findOne({ where: { user_id: req.user.id } });
+        
+        // Prioritize file paths over base64 data
+        let profilePicture = null;
+        if (profile?.profile_picture) {
+            if (profile.profile_picture.startsWith('/uploads/')) {
+                // Use file path
+                profilePicture = profile.profile_picture;
+            } else if (profile.profile_picture.startsWith('data:image/')) {
+                // Legacy base64 data - ignore it for now
+                profilePicture = null;
+            }
+        }
+        
         res.status(200).json({
             success: true,
             message: 'Token is valid',
@@ -241,7 +273,56 @@ const verifyToken = async (req, res) => {
                 id: req.user.id,
                 username: req.user.username,
                 email: req.user.email,
-                role: req.user.role
+                role: req.user.role,
+                profile_picture: profilePicture
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+const updateProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { username, email, wallet_address, profile_picture } = req.body;
+
+        // Update user data
+        const updateData = {};
+        if (username) updateData.username = username;
+        if (email) updateData.email = email;
+        if (wallet_address !== undefined) updateData.wallet_address = wallet_address;
+
+        if (Object.keys(updateData).length > 0) {
+            await User.update(updateData, { where: { id: userId } });
+        }
+
+        // Update profile picture if provided
+        if (profile_picture !== undefined) {
+            const profile = await Profile.findOne({ where: { user_id: userId } });
+            if (profile) {
+                await profile.update({ profile_picture });
+            }
+        }
+
+        // Return updated user data
+        const updatedUser = await User.findByPk(userId);
+        const updatedProfile = await Profile.findOne({ where: { user_id: userId } });
+
+        res.status(200).json({
+            success: true,
+            message: 'Profile updated successfully',
+            user: {
+                id: updatedUser.id,
+                username: updatedUser.username,
+                email: updatedUser.email,
+                role: updatedUser.role,
+                wallet_address: updatedUser.wallet_address,
+                profile_picture: updatedProfile?.profile_picture || null
             }
         });
     } catch (error) {
@@ -260,5 +341,6 @@ module.exports = {
     changePassword,
     authenticateToken,
     requireAdmin,
-    verifyToken
+    verifyToken,
+    updateProfile
 };

@@ -6,6 +6,7 @@ const updateProfile = async (req, res) => {
         const userId = req.user.id;
         const {
             avatar_url,
+            profile_picture,
             bio,
             trust_score,
             level,
@@ -24,6 +25,7 @@ const updateProfile = async (req, res) => {
 
         await profile.update({
             avatar_url,
+            profile_picture,
             bio,
             trust_score,
             level,

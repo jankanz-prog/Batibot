@@ -42,3 +42,6 @@ Thumbs.db
 # Build outputs
 dist/
 build/
+
+# Uploaded files (profile pictures, etc.)
+uploads/

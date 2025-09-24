@@ -40,16 +40,48 @@ const corsOptions = {
     },
     credentials: true,
     optionsSuccessStatus: 200,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 };
 
 // Middleware
 app.use(cors(corsOptions));
-app.use(express.json());
 
-// Enhanced logging middleware for debugging
+// Conditional parsing - skip both JSON and URL encoding for file uploads
 app.use((req, res, next) => {
+    if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
+        // Skip all body parsing for file uploads - let multer handle it
+        next();
+    } else {
+        // Apply JSON parsing for other requests
+        express.json({ limit: '50mb' })(req, res, next);
+    }
+});
+
+// URL encoding for form data (but not multipart)
+app.use((req, res, next) => {
+    if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
+        // Skip URL encoding for file uploads
+        next();
+    } else {
+        express.urlencoded({ limit: '50mb', extended: true })(req, res, next);
+    }
+});
+
+// Serve static files for uploaded images with CORS
+app.use('/uploads', (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+}, express.static('uploads'));
+
+// Enhanced logging middleware for debugging (skip for file uploads)
+app.use((req, res, next) => {
+    // Skip logging for file uploads to avoid body parsing conflicts
+    if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
+        return next();
+    }
     console.log('\n=== REQUEST DEBUG INFO ===');
     console.log(`${req.method} ${req.path} - ${new Date().toISOString()}`);
 
@@ -60,8 +92,12 @@ app.use((req, res, next) => {
         `Bearer ${req.headers.authorization.substring(7, 20)}...` : 'Not provided');
     console.log('  Origin:', req.headers.origin || 'Not set');
 
-    // Log request body
-    console.log('Request body received:', JSON.stringify(req.body, null, 2));
+    // Log request body (skip for file uploads)
+    if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
+        console.log('Request body received: [File Upload - FormData]');
+    } else {
+        console.log('Request body received:', JSON.stringify(req.body, null, 2));
+    }
 
     // Log query parameters
     if (Object.keys(req.query).length > 0) {
@@ -114,6 +150,19 @@ app.use((req, res, next) => {
             headers: { authorization: 'Bearer <token>' },
             params: { id: 'number' },
             body: 'empty (DELETE request)'
+        },
+        'PATCH /api/auth/notes/:id/toggle-favorite': {
+            headers: { authorization: 'Bearer <token>' },
+            params: { id: 'number' },
+            body: 'empty (PATCH request)'
+        },
+        'POST /api/auth/profile-picture': {
+            headers: { authorization: 'Bearer <token>' },
+            body: 'FormData with profilePicture file'
+        },
+        'DELETE /api/auth/profile-picture': {
+            headers: { authorization: 'Bearer <token>' },
+            body: 'empty (DELETE request)'
         }
     };
 
@@ -128,12 +177,14 @@ app.use((req, res, next) => {
     // Validation warnings
     console.log('\n--- VALIDATION CHECKS ---');
 
-    if (req.method === 'POST' || req.method === 'PUT') {
-        if (!req.headers['content-type'] || !req.headers['content-type'].includes('application/json')) {
-            console.log('⚠️  WARNING: Content-Type should be application/json');
+    if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
+        const isFileUpload = req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data');
+        
+        if (!isFileUpload && (!req.headers['content-type'] || !req.headers['content-type'].includes('application/json'))) {
+            console.log('⚠️  WARNING: Content-Type should be application/json (unless file upload)');
         }
 
-        if (Object.keys(req.body).length === 0) {
+        if (!isFileUpload && req.body && Object.keys(req.body).length === 0 && req.method !== 'PATCH') {
             console.log('⚠️  WARNING: Request body is empty for POST/PUT request');
         }
     }

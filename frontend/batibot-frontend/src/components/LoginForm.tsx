@@ -10,8 +10,8 @@ interface LoginFormProps {
 
 export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
     const { login } = useAuth()
-    const [formData, setFormData] = useState<LoginRequest>({
-        email: "",
+    const [formData, setFormData] = useState({
+        loginField: "",
         password: "",
     })
     const [loading, setLoading] = useState(false)
@@ -33,7 +33,19 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
         setError(null)
 
         try {
-            await login(formData)
+            // Determine if loginField is email or username
+            const loginData: LoginRequest = {
+                password: formData.password
+            }
+            
+            // Check if it's an email (contains @)
+            if (formData.loginField.includes('@')) {
+                loginData.email = formData.loginField
+            } else {
+                loginData.username = formData.loginField
+            }
+            
+            await login(loginData)
         } catch (err) {
             setError(err instanceof Error ? err.message : "Login failed")
         } finally {
@@ -49,16 +61,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
                 {error && <div className="error-message">{error}</div>}
 
                 <div className="form-group">
-                    <label htmlFor="email">Email</label>
+                    <label htmlFor="loginField">Username or Email</label>
                     <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
+                        type="text"
+                        id="loginField"
+                        name="loginField"
+                        value={formData.loginField}
                         onChange={handleChange}
                         required
                         disabled={loading}
-                        placeholder="Enter your email"
+                        placeholder="Enter your username or email"
                     />
                 </div>
 
