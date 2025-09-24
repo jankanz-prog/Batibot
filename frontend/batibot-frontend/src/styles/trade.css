@@ -164,6 +164,13 @@
 .item-time {
     color: var(--text-secondary);
     font-size: 0.85rem;
+    margin: 0 0 0.5rem 0;
+}
+
+.item-value {
+    color: #28a745;
+    font-size: 1.1rem;
+    font-weight: 700;
     margin: 0 0 1.5rem 0;
 }
 

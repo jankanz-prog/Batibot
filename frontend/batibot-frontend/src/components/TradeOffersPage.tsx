@@ -7,7 +7,7 @@ interface TradeOfferItem {
     id: string
     name: string
     rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'
-    value: number // Dollar value
+    value: number
     quantity: number
 }
 
