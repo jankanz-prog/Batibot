@@ -169,10 +169,50 @@ const deleteNote = async (req, res) => {
     }
 };
 
+const toggleFavorite = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+
+        const note = await Note.findOne({
+            where: {
+                id: id,
+                user_id: userId
+            }
+        });
+
+        if (!note) {
+            return res.status(404).json({
+                success: false,
+                message: 'Note not found'
+            });
+        }
+
+        // Toggle the favorited status
+        await note.update({
+            favorited: !note.favorited
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Note favorite status toggled successfully',
+            data: note
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+
 module.exports = {
     createNote,
     getAllNotes,
     getNoteById,
     updateNote,
-    deleteNote
+    deleteNote,
+    toggleFavorite
 };

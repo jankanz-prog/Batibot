@@ -4,10 +4,12 @@ export interface User {
     email: string
     role: "user" | "admin"
     wallet_address?: string
+    profile_picture?: string | null
 }
 
 export interface LoginRequest {
-    email: string
+    email?: string
+    username?: string
     password: string
 }
 
@@ -29,6 +31,7 @@ export interface AuthContextType {
     login: (credentials: LoginRequest) => Promise<void>
     register: (userData: RegisterRequest) => Promise<void>
     createAdmin: (userData: RegisterRequest) => Promise<void>
+    updateUser: (user: User) => void
     logout: () => void
     isAuthenticated: boolean
     isAdmin: boolean
@@ -44,6 +47,7 @@ export interface ProfileUpdateRequest {
     username?: string
     email?: string
     wallet_address?: string
+    profile_picture?: string | null
 }
 
 export interface ProfileResponse {

@@ -1,15 +1,25 @@
-// controllers/itemController.js - Updated with correct alias
+// controllers/itemController.js - Enhanced with categories and new features
 const Item = require('../models/itemModel');
 const ItemRarity = require('../models/itemRarityModel');
+const ItemCategory = require('../models/itemCategoryModel');
 
 const createItem = async (req, res) => {
     try {
-        const { name, rarity_id, metadata_uri } = req.body;
+        const { name, description, category_id, rarity_id, image_url, is_tradeable, metadata_uri } = req.body;
 
-        if (!name || !rarity_id) {
+        if (!name || !category_id || !rarity_id) {
             return res.status(400).json({
                 success: false,
-                message: 'Name and rarity_id are required'
+                message: 'Name, category_id, and rarity_id are required'
+            });
+        }
+
+        // Verify category exists
+        const category = await ItemCategory.findByPk(category_id);
+        if (!category) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid category_id'
             });
         }
 
@@ -24,23 +34,34 @@ const createItem = async (req, res) => {
 
         const item = await Item.create({
             name,
+            description,
+            category_id,
             rarity_id,
+            image_url,
+            is_tradeable: is_tradeable !== undefined ? is_tradeable : true,
             metadata_uri
         });
 
-        // Fetch the created item with rarity
-        const itemWithRarity = await Item.findByPk(item.item_id, {
-            include: [{
-                model: ItemRarity,
-                as: 'rarity',
-                attributes: ['rarity_id', 'name']
-            }]
+        // Fetch the created item with relationships
+        const itemWithRelations = await Item.findByPk(item.item_id, {
+            include: [
+                {
+                    model: ItemRarity,
+                    as: 'rarity',
+                    attributes: ['rarity_id', 'name', 'color', 'weight']
+                },
+                {
+                    model: ItemCategory,
+                    as: 'category',
+                    attributes: ['category_id', 'name', 'icon']
+                }
+            ]
         });
 
         res.status(201).json({
             success: true,
             message: 'Item created successfully',
-            data: itemWithRarity
+            data: itemWithRelations
         });
     } catch (error) {
         res.status(500).json({
@@ -54,11 +75,18 @@ const createItem = async (req, res) => {
 const getAllItems = async (req, res) => {
     try {
         const items = await Item.findAll({
-            include: [{
-                model: ItemRarity,
-                as: 'rarity',
-                attributes: ['rarity_id', 'name']
-            }],
+            include: [
+                {
+                    model: ItemRarity,
+                    as: 'rarity',
+                    attributes: ['rarity_id', 'name', 'color', 'weight']
+                },
+                {
+                    model: ItemCategory,
+                    as: 'category',
+                    attributes: ['category_id', 'name', 'icon']
+                }
+            ],
             order: [['created_at', 'DESC']]
         });
 
@@ -81,11 +109,18 @@ const getItemById = async (req, res) => {
         const { id } = req.params;
 
         const item = await Item.findByPk(id, {
-            include: [{
-                model: ItemRarity,
-                as: 'rarity',
-                attributes: ['rarity_id', 'name']
-            }]
+            include: [
+                {
+                    model: ItemRarity,
+                    as: 'rarity',
+                    attributes: ['rarity_id', 'name', 'color', 'weight']
+                },
+                {
+                    model: ItemCategory,
+                    as: 'category',
+                    attributes: ['category_id', 'name', 'icon']
+                }
+            ]
         });
 
         if (!item) {

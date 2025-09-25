@@ -242,10 +242,17 @@
 }
 
 .selected-item-card .item-name {
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 0.25rem 0;
     color: var(--text-primary);
     font-size: 0.9rem;
     font-weight: 500;
+}
+
+.selected-item-card .item-value {
+    margin: 0 0 0.5rem 0;
+    color: #28a745;
+    font-size: 0.85rem;
+    font-weight: 600;
 }
 
 .remove-item {
@@ -261,6 +268,43 @@
 
 .remove-item:hover {
     background: #c82333;
+}
+
+/* Value Comparison */
+.value-comparison {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.value-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.value-item .label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.value-item .value {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.value-item.difference .value.positive {
+    color: #28a745;
+}
+
+.value-item.difference .value.negative {
+    color: #dc3545;
 }
 
 /* Modal Actions */
@@ -420,10 +464,17 @@
 }
 
 .inventory-item .item-rarity {
-    margin: 0;
+    margin: 0 0 0.25rem 0;
     color: var(--text-secondary);
     font-size: 0.75rem;
     text-transform: capitalize;
+}
+
+.inventory-item .item-value {
+    margin: 0;
+    color: #28a745;
+    font-size: 0.8rem;
+    font-weight: 600;
 }
 
 .selected-indicator {

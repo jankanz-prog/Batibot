@@ -15,11 +15,12 @@ class AuthAPI {
     private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
         const url = `${API_BASE_URL}${endpoint}`
 
-        // Ensure Content-Type is preserved
+        // Ensure Content-Type is preserved, but don't override for FormData
         const config: RequestInit = {
             ...options,
             headers: {
-                "Content-Type": "application/json",
+                // Only set Content-Type if not already set (for FormData)
+                ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
                 ...(options.headers || {}),
             },
         }
@@ -100,6 +101,27 @@ class AuthAPI {
             method: "PUT",
             headers: this.getAuthHeaders(token),
             body: JSON.stringify(profileData),
+        })
+    }
+
+    async uploadProfilePicture(file: File, token: string): Promise<ProfileResponse> {
+        const formData = new FormData()
+        formData.append('profilePicture', file)
+
+        return this.makeRequest<ProfileResponse>("/auth/profile-picture", {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                // Don't set Content-Type, let browser set it for FormData
+            },
+            body: formData,
+        })
+    }
+
+    async deleteProfilePicture(token: string): Promise<ProfileResponse> {
+        return this.makeRequest<ProfileResponse>("/auth/profile-picture", {
+            method: "DELETE",
+            headers: this.getAuthHeaders(token),
         })
     }
 }

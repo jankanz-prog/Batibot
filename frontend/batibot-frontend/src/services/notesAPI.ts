@@ -81,6 +81,13 @@ class NotesAPI {
             headers: this.getAuthHeaders(token),
         })
     }
+
+    async toggleFavorite(id: number, token: string): Promise<NoteResponse> {
+        return this.makeRequest<NoteResponse>(`/auth/notes/${id}/toggle-favorite`, {
+            method: "PATCH",
+            headers: this.getAuthHeaders(token),
+        })
+    }
 }
 
 export const notesAPI = new NotesAPI()

@@ -19,6 +19,18 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         navigate("/dashboard")
     }
 
+    const navigateToTrade = () => {
+        navigate("/trade")
+    }
+
+    const navigateToTradeOffers = () => {
+        navigate("/trade-offers")
+    }
+
+    const navigateToNotes = () => {
+        navigate("/notes")
+    }
+
     return (
         <div className="app-layout">
             <header className="app-header">
@@ -29,7 +41,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                     {user && (
                         <div className="user-info">
-                            <nav className="nav-buttons">
+                            <nav className="nav-menu">
                                 <button
                                     onClick={navigateToDashboard}
                                     className={`nav-button ${location.pathname === '/dashboard' ? 'active' : ''}`}
@@ -37,19 +49,39 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                                     Dashboard
                                 </button>
                                 <button
-                                    onClick={() => navigate('/trade')}
+                                    onClick={() => navigate('/inventory')}
+                                    className={`nav-button ${location.pathname === '/inventory' ? 'active' : ''}`}
+                                >
+                                     Inventory
+                                </button>
+                                <button
+                                    onClick={() => navigate('/items')}
+                                    className={`nav-button ${location.pathname === '/items' ? 'active' : ''}`}
+                                >
+                                     Items
+                                </button>
+                                {isAdmin && (
+                                    <button
+                                        onClick={() => navigate('/admin')}
+                                        className={`nav-button admin-nav ${location.pathname === '/admin' ? 'active' : ''}`}
+                                    >
+                                         Admin
+                                    </button>
+                                )}
+                                <button
+                                    onClick={navigateToTrade}
                                     className={`nav-button ${location.pathname === '/trade' ? 'active' : ''}`}
                                 >
                                     Trade
                                 </button>
                                 <button
-                                    onClick={() => navigate('/trade-offers')}
+                                    onClick={navigateToTradeOffers}
                                     className={`nav-button ${location.pathname === '/trade-offers' ? 'active' : ''}`}
                                 >
                                     Trade Offers
                                 </button>
                                 <button
-                                    onClick={() => navigate('/notes')}
+                                    onClick={navigateToNotes}
                                     className={`nav-button ${location.pathname === '/notes' ? 'active' : ''}`}
                                 >
                                     Notes
@@ -61,6 +93,19 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                                     Profile
                                 </button>
                             </nav>
+
+                            <div className="header-profile-picture">
+                                {user.profile_picture ? (
+                                    <img 
+                                        src={`http://localhost:3001${user.profile_picture}`} 
+                                        alt="Profile" 
+                                    />
+                                ) : (
+                                    <div className="header-profile-placeholder">
+                                        {user.username.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                            </div>
 
                             <span className="welcome-text">
                                 Welcome, {user.username}

@@ -10,6 +10,7 @@ interface InventoryItem {
     rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'
     image?: string
     quantity: number
+    value: number
 }
 
 interface TradeOfferModalProps {
@@ -17,25 +18,27 @@ interface TradeOfferModalProps {
     onClose: () => void
     targetUser: string
     targetItem: string
+    targetItemValue: number
 }
 
 // Mock inventory data
 const mockInventory: InventoryItem[] = [
-    { id: '1', name: 'Ancient Sword', rarity: 'legendary', quantity: 1 },
-    { id: '2', name: 'Magic Shield', rarity: 'epic', quantity: 2 },
-    { id: '3', name: 'Steel Helmet', rarity: 'rare', quantity: 1 },
-    { id: '4', name: 'Iron Boots', rarity: 'uncommon', quantity: 3 },
-    { id: '5', name: 'Wooden Staff', rarity: 'common', quantity: 5 },
-    { id: '6', name: 'Crystal Orb', rarity: 'epic', quantity: 1 },
-    { id: '7', name: 'Silver Ring', rarity: 'rare', quantity: 2 },
-    { id: '8', name: 'Basic Potion', rarity: 'common', quantity: 10 }
+    { id: '1', name: 'Ancient Sword', rarity: 'legendary', quantity: 1, value: 25.00 },
+    { id: '2', name: 'Magic Shield', rarity: 'epic', quantity: 2, value: 15.50 },
+    { id: '3', name: 'Steel Helmet', rarity: 'rare', quantity: 1, value: 8.00 },
+    { id: '4', name: 'Iron Boots', rarity: 'uncommon', quantity: 3, value: 4.25 },
+    { id: '5', name: 'Wooden Staff', rarity: 'common', quantity: 5, value: 2.10 },
+    { id: '6', name: 'Crystal Orb', rarity: 'epic', quantity: 1, value: 18.25 },
+    { id: '7', name: 'Silver Ring', rarity: 'rare', quantity: 2, value: 12.00 },
+    { id: '8', name: 'Basic Potion', rarity: 'common', quantity: 10, value: 1.50 }
 ]
 
 export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
     isOpen,
     onClose,
     targetUser,
-    targetItem
+    targetItem,
+    targetItemValue
 }) => {
     const navigate = useNavigate()
     const [selectedItems, setSelectedItems] = useState<InventoryItem[]>([])
@@ -65,9 +68,14 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
         }
     }
 
+    const getTotalOfferedValue = () => {
+        return selectedItems.reduce((total, item) => total + (item.value * item.quantity), 0)
+    }
+
     const handleConfirmOffer = () => {
+        const totalValue = getTotalOfferedValue()
         // TODO: Implement actual trade offer logic
-        alert(`Trade offer sent to ${targetUser} for ${targetItem}!\nOffered items: ${selectedItems.map(item => item.name).join(', ')}`)
+        alert(`Trade offer sent to ${targetUser} for ${targetItem}!\nOffered items: ${selectedItems.map(item => item.name).join(', ')}\nTotal value: $${totalValue.toFixed(2)}`)
         setSelectedItems([])
         onClose()
         // Navigate to trade offers page to see the new offer
@@ -118,7 +126,7 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
                             </div>
                             <div className="info-item">
                                 <span className="label">Item Value:</span>
-                                <span className="value">$45.50</span>
+                                <span className="value">${targetItemValue.toFixed(2)}</span>
                             </div>
                             <div className="info-item">
                                 <span className="label">Sniping Prevention:</span>
@@ -137,7 +145,7 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
 
                     {/* Selected Items Section */}
                     <div className="selected-items-section">
-                        <h3>Your Offer ({selectedItems.length} items)</h3>
+                        <h3>Your Offer ({selectedItems.length} items - ${getTotalOfferedValue().toFixed(2)})</h3>
                         <div className="selected-items-grid">
                             {selectedItems.length === 0 ? (
                                 <div className="no-items-selected">
@@ -154,6 +162,7 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
                                         </div>
                                         <div className="item-info">
                                             <p className="item-name">{item.name}</p>
+                                            <p className="item-value">${item.value.toFixed(2)}</p>
                                             <button 
                                                 className="remove-item"
                                                 onClick={() => handleItemSelect(item)}
@@ -166,6 +175,29 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
                             )}
                         </div>
                     </div>
+
+                    {/* Value Comparison */}
+                    {selectedItems.length > 0 && (
+                        <div className="value-comparison">
+                            <div className="value-item">
+                                <span className="label">Target Value:</span>
+                                <span className="value">${targetItemValue.toFixed(2)}</span>
+                            </div>
+                            <div className="value-item">
+                                <span className="label">Your Offer:</span>
+                                <span className="value">${getTotalOfferedValue().toFixed(2)}</span>
+                            </div>
+                            <div className="value-item difference">
+                                <span className="label">Difference:</span>
+                                <span 
+                                    className={`value ${getTotalOfferedValue() >= targetItemValue ? 'positive' : 'negative'}`}
+                                >
+                                    {getTotalOfferedValue() >= targetItemValue ? '+' : ''}
+                                    ${(getTotalOfferedValue() - targetItemValue).toFixed(2)}
+                                </span>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Action Buttons */}
                     <div className="modal-actions">
@@ -213,6 +245,7 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
                                         <div className="item-info">
                                             <p className="item-name">{item.name}</p>
                                             <p className="item-rarity">{item.rarity}</p>
+                                            <p className="item-value">${item.value.toFixed(2)}</p>
                                         </div>
                                         {isSelected && <div className="selected-indicator">✓</div>}
                                     </div>
@@ -222,7 +255,7 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
                         
                         <div className="inventory-actions">
                             <button className="done-button" onClick={closeInventory}>
-                                Done Selecting
+                                Done Selecting ({selectedItems.length} items)
                             </button>
                         </div>
                     </div>

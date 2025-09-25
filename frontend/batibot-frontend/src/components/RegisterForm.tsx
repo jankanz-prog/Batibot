@@ -19,6 +19,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
     const [confirmPassword, setConfirmPassword] = useState("")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [success, setSuccess] = useState<string | null>(null)
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target
@@ -26,13 +27,15 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
             ...prev,
             [name]: value,
         }))
-        // Clear error when user starts typing
+        // Clear messages when user starts typing
         if (error) setError(null)
+        if (success) setSuccess(null)
     }
 
     const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setConfirmPassword(e.target.value)
         if (error) setError(null)
+        if (success) setSuccess(null)
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -56,6 +59,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
 
         try {
             await register(formData)
+            setSuccess("Registration successful! Welcome to Batibot!")
+            // The ProtectedRoute will automatically redirect to dashboard
+            // since isAuthenticated will become true after register() completes
         } catch (err) {
             setError(err instanceof Error ? err.message : "Registration failed")
         } finally {
@@ -69,6 +75,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
                 <h2>Register</h2>
 
                 {error && <div className="error-message">{error}</div>}
+                {success && <div className="success-message">{success}</div>}
 
                 <div className="form-group">
                     <label htmlFor="username">Username</label>

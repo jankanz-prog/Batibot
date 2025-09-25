@@ -94,6 +94,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
     }
 
+    const updateUser = (updatedUser: User) => {
+        setUser(updatedUser)
+        tokenStorage.setUser(updatedUser)
+    }
+
     const logout = () => {
         setUser(null)
         setToken(null)
@@ -106,6 +111,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         login,
         register,
         createAdmin,
+        updateUser,
         logout,
         isAuthenticated: !!user && !!token,
         isAdmin: user?.role === "admin",
