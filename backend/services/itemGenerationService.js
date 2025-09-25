@@ -3,6 +3,7 @@ const cron = require('node-cron');
 const User = require('../models/userModel');
 const Item = require('../models/itemModel');
 const ItemRarity = require('../models/itemRarityModel');
+const ItemCategory = require('../models/itemCategoryModel');
 const Inventory = require('../models/inventoryModel');
 
 class ItemGenerationService {
@@ -16,10 +17,15 @@ class ItemGenerationService {
             'legendary': 1
         };
 
-        this.itemTemplates = [
-            'Sword', 'Shield', 'Potion', 'Ring', 'Amulet', 'Bow', 'Staff', 'Helmet',
-            'Armor', 'Boots', 'Gloves', 'Gem', 'Scroll', 'Crystal', 'Orb', 'Rune'
-        ];
+        this.itemTemplates = {
+            'weapon': ['Sword', 'Bow', 'Staff', 'Dagger', 'Axe', 'Spear'],
+            'armor': ['Helmet', 'Chestplate', 'Leggings', 'Boots', 'Shield'],
+            'accessory': ['Ring', 'Amulet', 'Necklace', 'Bracelet', 'Earring'],
+            'consumable': ['Potion', 'Elixir', 'Food', 'Medicine', 'Drink'],
+            'material': ['Gem', 'Crystal', 'Ore', 'Wood', 'Fabric'],
+            'tool': ['Pickaxe', 'Hammer', 'Chisel', 'Tongs', 'Anvil'],
+            'misc': ['Scroll', 'Orb', 'Rune', 'Book', 'Key']
+        };
     }
 
     // Generate weighted random rarity based on probabilities
@@ -39,9 +45,11 @@ class ItemGenerationService {
         return rarities.find(r => r.name === 'common') || rarities[0];
     }
 
-    // Generate random item name with rarity prefix
-    generateItemName(rarity) {
-        const template = this.itemTemplates[Math.floor(Math.random() * this.itemTemplates.length)];
+    // Generate random item name with rarity prefix and category
+    generateItemName(rarity, category) {
+        const templates = this.itemTemplates[category.name] || this.itemTemplates['misc'];
+        const template = templates[Math.floor(Math.random() * templates.length)];
+        
         const rarityPrefixes = {
             'common': ['Basic', 'Simple', 'Plain'],
             'uncommon': ['Enhanced', 'Improved', 'Quality'],
@@ -54,6 +62,21 @@ class ItemGenerationService {
         const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
 
         return `${prefix} ${template}`;
+    }
+
+    // Generate item description based on rarity and category
+    generateItemDescription(rarity, category, itemName) {
+        const descriptions = {
+            'weapon': `A ${rarity.name} weapon that deals significant damage to enemies.`,
+            'armor': `A ${rarity.name} piece of armor that provides excellent protection.`,
+            'accessory': `A ${rarity.name} accessory that enhances the wearer's abilities.`,
+            'consumable': `A ${rarity.name} consumable item that provides temporary benefits.`,
+            'material': `A ${rarity.name} crafting material used to create powerful items.`,
+            'tool': `A ${rarity.name} tool that aids in various tasks and crafting.`,
+            'misc': `A ${rarity.name} mysterious item with unknown properties.`
+        };
+
+        return descriptions[category.name] || `A ${rarity.name} ${itemName}.`;
     }
 
     // Generate item for a specific user
@@ -72,24 +95,39 @@ class ItemGenerationService {
                 };
             }
 
-            // Get all rarities
-            const rarities = await ItemRarity.findAll();
+            // Get all rarities and categories
+            const [rarities, categories] = await Promise.all([
+                ItemRarity.findAll(),
+                ItemCategory.findAll()
+            ]);
 
             if (rarities.length === 0) {
                 console.log('No rarities found in database. Skipping item generation.');
                 return null;
             }
 
+            if (categories.length === 0) {
+                console.log('No categories found in database. Skipping item generation.');
+                return null;
+            }
+
             // Select random rarity based on weights
             const selectedRarity = this.getRandomRarity(rarities);
 
-            // Generate item name
-            const itemName = this.generateItemName(selectedRarity);
+            // Select random category
+            const selectedCategory = categories[Math.floor(Math.random() * categories.length)];
+
+            // Generate item name and description
+            const itemName = this.generateItemName(selectedRarity, selectedCategory);
+            const itemDescription = this.generateItemDescription(selectedRarity, selectedCategory, itemName);
 
             // Create the item
             const item = await Item.create({
                 name: itemName,
+                description: itemDescription,
+                category_id: selectedCategory.category_id,
                 rarity_id: selectedRarity.rarity_id,
+                is_tradeable: true,
                 metadata_uri: `generated_item_${Date.now()}`
             });
 
@@ -100,11 +138,12 @@ class ItemGenerationService {
                 quantity: 1
             });
 
-            console.log(`Generated ${selectedRarity.name} ${itemName} for user ${user.username} (${itemCount + 1}/${this.MAX_INVENTORY_ITEMS})`);
+            console.log(`Generated ${selectedRarity.name} ${selectedCategory.name} "${itemName}" for user ${user.username} (${itemCount + 1}/${this.MAX_INVENTORY_ITEMS})`);
 
             return {
                 item,
                 rarity: selectedRarity,
+                category: selectedCategory,
                 user: user.username,
                 inventoryCount: itemCount + 1
             };
@@ -167,16 +206,23 @@ class ItemGenerationService {
 
     // Start the cron job
     startItemGeneration() {
-        console.log('Starting item generation service...');
+        console.log('🎮 Starting item generation service...');
 
         // Run every 1 minute: '* * * * *'
         // For testing, you might want to use '*/10 * * * * *' (every 10 seconds)
         cron.schedule('* * * * *', async () => {
-            console.log('Running scheduled item generation...');
-            await this.generateItemsForAllUsers();
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`\n⏰ [${timestamp}] Running scheduled item generation...`);
+            const results = await this.generateItemsForAllUsers();
+            
+            if (results && results.stats) {
+                console.log(`📊 Generation Summary: ${results.stats.itemsGenerated} items created, ${results.stats.usersSkipped} users skipped`);
+            }
+            console.log('─'.repeat(50));
         });
 
-        console.log('Item generation service started. Items will be generated every minute.');
+        console.log('✅ Item generation service started. Items will be generated every minute.');
+        console.log('🔍 Watch for generation logs above every minute...\n');
     }
 
     // Stop the cron job (useful for testing or graceful shutdown)

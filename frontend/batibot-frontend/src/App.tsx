@@ -8,6 +8,7 @@ import "./styles/trade.css"
 import "./styles/trade-modal.css"
 import "./styles/trade-offers.css"
 import "./styles/dashboard.css"
+import "./styles/items.css"
 
 
 const App: React.FC = () => {

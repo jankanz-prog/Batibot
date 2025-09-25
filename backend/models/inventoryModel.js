@@ -11,7 +11,6 @@ const Inventory = sequelize.define('Inventory', {
     user_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        unique: true,
         references: {
             model: 'users',
             key: 'id'
@@ -37,7 +36,13 @@ const Inventory = sequelize.define('Inventory', {
     }
 }, {
     tableName: 'inventories',
-    timestamps: false
+    timestamps: false,
+    indexes: [
+        {
+            unique: true,
+            fields: ['user_id', 'item_id']
+        }
+    ]
 });
 
 module.exports = Inventory;

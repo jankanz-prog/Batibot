@@ -3,6 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
+const itemRoutes = require('./routes/itemRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const rarityRoutes = require('./routes/rarityRoutes');
 const ItemGenerationService = require('./services/itemGenerationService');
 require('./models'); // This will load all models and associations
 
@@ -208,6 +211,9 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/items', itemRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/rarities', rarityRoutes);
 
 // Connect to database and start server
 const PORT = process.env.PORT || 3001;
@@ -215,18 +221,43 @@ const PORT = process.env.PORT || 3001;
 sequelize.authenticate()
     .then(() => {
         console.log('PostgreSQL connected successfully');
-        return sequelize.sync({ alter: true }); // change to 'force: true' if you want to reset the database/if corrupted
+        return sequelize.sync({ alter : true }); // change to 'force: true' if you want to reset the database/if corrupted
     })
     .then(() => {
         console.log('Database tables created successfully');
 
         // Initialize and start item generation service
-
-        //const itemGenerator = new ItemGenerationService(); //uncomment this line if you want to start automatic item generation
-        //itemGenerator.startItemGeneration(); //uncomment this line if you want to start automatic item generation
+        try {
+            console.log('🔧 Attempting to start item generation service...');
+            const itemGenerator = new ItemGenerationService(); //uncomment this line if you want to start automatic item generation
+            itemGenerator.startItemGeneration(); //uncomment this line if you want to start automatic item generation
+        } catch (error) {
+            console.error('❌ Error starting item generation service:', error.message);
+            console.error('Stack trace:', error.stack);
+        }
 
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
+            console.log('\n🎮 ITEM SYSTEM SETUP GUIDE:');
+            console.log('═'.repeat(50));
+            console.log('📋 To set up the item system for the first time:');
+            console.log('   → Run: node setup-initial-data.js');
+            console.log('   → This creates initial rarities and categories');
+            console.log('');
+            console.log('🔍 To check item generation status:');
+            console.log('   → Run: node debug-item-generation.js');
+            console.log('   → This shows database stats and recent items');
+            console.log('');
+            console.log('🎯 Item Generation Status:');
+            console.log('   → Automatic generation: ENABLED (every minute)');
+            console.log('   → Manual generation: POST /api/auth/generate-items (admin only)');
+            console.log('   → Max inventory per user: 30 items');
+            console.log('');
+            console.log('🎨 Frontend Features:');
+            console.log('   → /items - Browse all items');
+            console.log('   → /inventory - View personal inventory');
+            console.log('   → /admin - Admin management (admin users only)');
+            console.log('═'.repeat(50));
         });
     })
     .catch(err => {

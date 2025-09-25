@@ -12,10 +12,26 @@ const generateToken = (userId) => {
 
 const register = async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, role } = req.body;
 
-        const user = await User.create({ username, email, password });
+        // Validate role if provided
+        if (role && !['user', 'admin'].includes(role)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid role. Must be either "user" or "admin"'
+            });
+        }
+
+        const user = await User.create({ 
+            username, 
+            email, 
+            password, 
+            role: role || 'user' // Default to 'user' if no role provided
+        });
         await Profile.create({ user_id: user.id });
+
+        // Generate token for immediate login after registration
+        const token = generateToken(user.id);
 
         res.status(201).json({
             success: true,
@@ -25,7 +41,8 @@ const register = async (req, res) => {
                 username: user.username,
                 email: user.email,
                 role: user.role
-            }
+            },
+            token
         });
     } catch (error) {
         res.status(400).json({

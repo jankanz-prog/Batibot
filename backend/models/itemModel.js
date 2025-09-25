@@ -12,6 +12,18 @@ const Item = sequelize.define('Item', {
         type: DataTypes.STRING,
         allowNull: false
     },
+    description: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+    category_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'item_categories',
+            key: 'category_id'
+        }
+    },
     rarity_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -19,6 +31,17 @@ const Item = sequelize.define('Item', {
             model: 'item_rarities',
             key: 'rarity_id'
         }
+    },
+    image_url: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: 'URL or path to item image/icon'
+    },
+    is_tradeable: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+        comment: 'Whether this item can be traded between users'
     },
     metadata_uri: {
         type: DataTypes.STRING,

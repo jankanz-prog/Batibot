@@ -315,6 +315,24 @@
     font-weight: 600;
 }
 
+.nav-button.admin-nav {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.nav-button.admin-nav:hover {
+    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.nav-button.admin-nav.active {
+    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+}
+
 /* Update existing welcome-text for better alignment */
 .welcome-text {
     font-size: 1rem;
