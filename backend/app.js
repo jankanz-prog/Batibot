@@ -215,7 +215,7 @@ const PORT = process.env.PORT || 3001;
 sequelize.authenticate()
     .then(() => {
         console.log('PostgreSQL connected successfully');
-        return sequelize.sync({ alter: true }); // Updates tables without losing data
+        return sequelize.sync({ alter: true }); // change to 'force: true' if you want to reset the database/if corrupted
     })
     .then(() => {
         console.log('Database tables created successfully');

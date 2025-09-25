@@ -67,8 +67,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                                     <img 
                                         src={`http://localhost:3001${user.profile_picture}`} 
                                         alt="Profile" 
-                                        onLoad={() => console.log('Layout - Image loaded successfully:', user.profile_picture)}
-                                        onError={(e) => console.error('Layout - Image failed to load:', user.profile_picture, e)}
                                     />
                                 ) : (
                                     <div className="header-profile-placeholder">

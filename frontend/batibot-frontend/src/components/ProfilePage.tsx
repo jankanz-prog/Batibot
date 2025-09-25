@@ -5,7 +5,7 @@ import { authAPI } from "../services/authAPI"
 import type { ProfileUpdateRequest } from "../types/auth"
 
 export const ProfilePage: React.FC = () => {
-    const { user, token, logout } = useAuth()
+    const { user, token, logout, updateUser } = useAuth()
     const [isEditing, setIsEditing] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
@@ -20,9 +20,6 @@ export const ProfilePage: React.FC = () => {
 
     useEffect(() => {
         if (user) {
-            console.log('ProfilePage - User data:', user);
-            console.log('ProfilePage - Profile picture path:', user.profile_picture);
-            
             setFormData({
                 username: user.username,
                 email: user.email,
@@ -33,7 +30,6 @@ export const ProfilePage: React.FC = () => {
             const imageUrl = user.profile_picture 
                 ? `http://localhost:3001${user.profile_picture}` 
                 : null
-            console.log('ProfilePage - Constructed image URL:', imageUrl);
             setPreviewImage(imageUrl)
         }
     }, [user])
@@ -56,7 +52,6 @@ export const ProfilePage: React.FC = () => {
                 const response = await authAPI.uploadProfilePicture(file, token)
                 if (response.user) {
                     setSuccess("Profile picture updated successfully!")
-                    console.log('Upload response:', response.user);
                     
                     // Update preview with server URL
                     const imageUrl = `http://localhost:3001${response.user.profile_picture}`
@@ -66,18 +61,8 @@ export const ProfilePage: React.FC = () => {
                         profile_picture: response.user.profile_picture || null,
                     }))
                     
-                    // Update the user context by calling verifyToken to refresh user data
-                    try {
-                        const verifyResponse = await authAPI.verifyToken(token);
-                        if (verifyResponse) {
-                            // Force a page refresh to update the AuthContext
-                            setTimeout(() => window.location.reload(), 500);
-                        }
-                    } catch (err) {
-                        console.error('Failed to refresh user data:', err);
-                        // Fallback to page refresh
-                        setTimeout(() => window.location.reload(), 1000);
-                    }
+                    // Update the user context directly (no page reload needed!)
+                    updateUser(response.user);
                 }
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to upload image")
@@ -102,8 +87,8 @@ export const ProfilePage: React.FC = () => {
                     ...prev,
                     profile_picture: null,
                 }))
-                // Refresh page to update user context
-                setTimeout(() => window.location.reload(), 1000)
+                // Update the user context directly (no page reload needed!)
+                updateUser(response.user);
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to delete profile picture")

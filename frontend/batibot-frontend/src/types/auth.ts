@@ -31,6 +31,7 @@ export interface AuthContextType {
     login: (credentials: LoginRequest) => Promise<void>
     register: (userData: RegisterRequest) => Promise<void>
     createAdmin: (userData: RegisterRequest) => Promise<void>
+    updateUser: (user: User) => void
     logout: () => void
     isAuthenticated: boolean
     isAdmin: boolean
