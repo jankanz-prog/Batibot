@@ -227,6 +227,7 @@ sequelize.authenticate()
         console.log('Database tables created successfully');
 
         // Initialize and start item generation service
+        // TEMPORARILY DISABLED for soft-delete implementation
         try {
             console.log('🔧 Attempting to start item generation service...');
             const itemGenerator = new ItemGenerationService(); //uncomment this line if you want to start automatic item generation
@@ -241,11 +242,11 @@ sequelize.authenticate()
             console.log('\n🎮 ITEM SYSTEM SETUP GUIDE:');
             console.log('═'.repeat(50));
             console.log('📋 To set up the item system for the first time:');
-            console.log('   → Run: node setup-initial-data.js');
+            console.log('   → Run: node item-system-utils/setup-initial-data.js');
             console.log('   → This creates initial rarities and categories');
             console.log('');
             console.log('🔍 To check item generation status:');
-            console.log('   → Run: node debug-item-generation.js');
+            console.log('   → Run: node item-system-utils/debug-item-generation.js');
             console.log('   → This shows database stats and recent items');
             console.log('');
             console.log('🎯 Item Generation Status:');

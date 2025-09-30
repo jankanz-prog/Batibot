@@ -59,8 +59,10 @@
 /* ===== ITEM GRID ===== */
 .items-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(5, 1fr); /* 5 columns for 6x5 grid */
     gap: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
     margin-bottom: 2rem;
 }
 
@@ -255,8 +257,10 @@
 
 .inventory-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(5, 1fr); /* 5 columns for 6x5 grid */
     gap: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 .inventory-item {
@@ -476,6 +480,75 @@
     color: var(--text-primary);
 }
 
+/* ===== ITEM ACTIONS (DELETE/RESTORE BUTTONS) ===== */
+.item-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 0.5rem;
+}
+
+.delete-btn {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+.delete-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+.restore-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+.restore-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+/* Deleted item styling */
+.deleted-item {
+    opacity: 0.7;
+    border: 2px dashed var(--border-color);
+    background: repeating-linear-gradient(
+        45deg,
+        var(--bg-secondary),
+        var(--bg-secondary) 10px,
+        rgba(255, 107, 107, 0.05) 10px,
+        rgba(255, 107, 107, 0.05) 20px
+    );
+}
+
+.deleted-item:hover {
+    opacity: 1;
+}
+
+/* Header actions styling */
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
     .items-page,
@@ -496,7 +569,23 @@
 
     .items-grid,
     .inventory-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* Single column on mobile */
+    }
+}
+
+/* Tablet view - 3 columns */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .items-grid,
+    .inventory-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Desktop view - 5 columns (6x5 grid) */
+@media (min-width: 1025px) {
+    .items-grid,
+    .inventory-grid {
+        grid-template-columns: repeat(5, 1fr);
     }
 
     .inventory-stats {

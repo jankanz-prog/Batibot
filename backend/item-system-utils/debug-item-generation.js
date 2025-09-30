@@ -8,12 +8,14 @@
 // - Shows inventory status for all users
 // - Identifies potential issues (missing rarities/categories)
 //
-const sequelize = require('./config/database');
-const User = require('./models/userModel');
-const Item = require('./models/itemModel');
-const Inventory = require('./models/inventoryModel');
-const ItemRarity = require('./models/itemRarityModel');
-const ItemCategory = require('./models/itemCategoryModel');
+const sequelize = require('../config/database');
+// Load models with associations
+require('../models'); // This loads all model associations
+const User = require('../models/userModel');
+const Item = require('../models/itemModel');
+const Inventory = require('../models/inventoryModel');
+const ItemRarity = require('../models/itemRarityModel');
+const ItemCategory = require('../models/itemCategoryModel');
 
 async function checkItemGeneration() {
     try {
@@ -40,7 +42,7 @@ async function checkItemGeneration() {
         const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
         const recentItems = await Item.findAll({
             where: {
-                createdAt: {
+                created_at: {
                     [sequelize.Sequelize.Op.gte]: fiveMinutesAgo
                 }
             },
@@ -48,7 +50,7 @@ async function checkItemGeneration() {
                 { model: ItemRarity, as: 'rarity' },
                 { model: ItemCategory, as: 'category' }
             ],
-            order: [['createdAt', 'DESC']],
+            order: [['created_at', 'DESC']],
             limit: 10
         });
 
@@ -57,35 +59,56 @@ async function checkItemGeneration() {
             console.log('   No items generated in the last 5 minutes.');
         } else {
             recentItems.forEach(item => {
-                console.log(`   ${item.createdAt.toLocaleTimeString()} - ${item.rarity?.name || 'unknown'} ${item.category?.name || 'unknown'}: "${item.name}"`);
+                const createdTime = new Date(item.created_at).toLocaleTimeString();
+                console.log(`   ${createdTime} - ${item.rarity?.name || 'unknown'} ${item.category?.name || 'unknown'}: "${item.name}"`);
             });
         }
         console.log('');
 
-        // Check inventory distribution
+        // Check inventory distribution (active items only)
         const inventoryStats = await Inventory.findAll({
             attributes: [
                 'user_id',
                 [sequelize.fn('COUNT', sequelize.col('item_id')), 'item_count']
             ],
+            where: { is_deleted: false },
             include: [{
                 model: User,
-                as: 'user',
                 attributes: ['username']
             }],
-            group: ['user_id', 'user.id', 'user.username'],
+            group: ['user_id', 'User.id', 'User.username'],
             order: [[sequelize.literal('item_count'), 'DESC']]
         });
 
-        console.log('🎒 User Inventory Status:');
+        // Check deleted items
+        const deletedStats = await Inventory.findAll({
+            attributes: [
+                'user_id',
+                [sequelize.fn('COUNT', sequelize.col('item_id')), 'deleted_count']
+            ],
+            where: { is_deleted: true },
+            include: [{
+                model: User,
+                attributes: ['username']
+            }],
+            group: ['user_id', 'User.id', 'User.username']
+        });
+
+        console.log('🎒 User Inventory Status (Active Items):');
         if (inventoryStats.length === 0) {
-            console.log('   No users have items yet.');
+            console.log('   No users have active items yet.');
         } else {
             inventoryStats.forEach(stat => {
                 const itemCount = parseInt(stat.dataValues.item_count);
-                const username = stat.user?.username || 'Unknown';
+                const username = stat.User?.username || 'Unknown';
                 const status = itemCount >= 30 ? '(FULL)' : '';
-                console.log(`   ${username}: ${itemCount}/30 items ${status}`);
+                
+                // Find deleted count for this user
+                const deletedStat = deletedStats.find(d => d.user_id === stat.user_id);
+                const deletedCount = deletedStat ? parseInt(deletedStat.dataValues.deleted_count) : 0;
+                const deletedInfo = deletedCount > 0 ? ` | 🗑️ ${deletedCount} deleted` : '';
+                
+                console.log(`   ${username}: ${itemCount}/30 items ${status}${deletedInfo}`);
             });
         }
         console.log('');

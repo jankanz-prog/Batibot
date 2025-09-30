@@ -196,4 +196,37 @@ export const inventoryAPI = {
             body: JSON.stringify(inventoryData),
         });
     },
+
+    // Soft delete item (move to deleted items)
+    softDeleteItem: async (item_id: number, token: string): Promise<ApiResponse<InventoryItem>> => {
+        return apiCall<InventoryItem>('/auth/inventory/soft-delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ item_id }),
+        });
+    },
+
+    // Restore deleted item
+    restoreItem: async (item_id: number, token: string): Promise<ApiResponse<InventoryItem>> => {
+        return apiCall<InventoryItem>('/auth/inventory/restore', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ item_id }),
+        });
+    },
+
+    // Get deleted items
+    getDeletedItems: async (token: string): Promise<ApiResponse<InventoryItem[]>> => {
+        return apiCall<InventoryItem[]>('/auth/inventory/deleted', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+    },
 };

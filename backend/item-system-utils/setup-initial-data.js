@@ -8,9 +8,9 @@
 // - Safe to run multiple times (won't create duplicates)
 // - Required before item generation can work
 //
-const sequelize = require('./config/database');
-const ItemRarity = require('./models/itemRarityModel');
-const ItemCategory = require('./models/itemCategoryModel');
+const sequelize = require('../config/database');
+const ItemRarity = require('../models/itemRarityModel');
+const ItemCategory = require('../models/itemCategoryModel');
 
 async function setupInitialData() {
     try {

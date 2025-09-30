@@ -7,11 +7,20 @@ const MAX_ITEMS = 30;
 const getInventory = async (req, res) => {
     try {
         const userId = req.user.id;
+        const { include_deleted } = req.query;
+        
+        const whereClause = { user_id: userId };
+        
+        // By default, only show non-deleted items
+        if (include_deleted !== 'true') {
+            whereClause.is_deleted = false;
+        }
+        
         const items = await Inventory.findAll({
-            where: { user_id: userId },
+            where: whereClause,
             include: [{ model: Item }]
         });
-        res.status(200).json({ success: true, items });
+        res.status(200).json({ success: true, data: items });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
@@ -30,7 +39,8 @@ const addItemToInventory = async (req, res) => {
             });
         }
 
-        const itemCount = await Inventory.count({ where: { user_id: userId } });
+        // Only count non-deleted items for the 30-item limit
+        const itemCount = await Inventory.count({ where: { user_id: userId, is_deleted: false } });
         if (itemCount >= MAX_ITEMS) {
             return res.status(400).json({
                 success: false,
@@ -97,4 +107,107 @@ const removeItemFromInventory = async (req, res) => {
 };
 
 
-module.exports = { getInventory, addItemToInventory, removeItemFromInventory  };
+// Soft delete item (mark as deleted)
+const softDeleteItem = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { item_id } = req.body;
+
+        const inventoryItem = await Inventory.findOne({ 
+            where: { user_id: userId, item_id, is_deleted: false } 
+        });
+        
+        if (!inventoryItem) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Item not found in active inventory' 
+            });
+        }
+
+        await inventoryItem.update({ is_deleted: true });
+        
+        res.status(200).json({ 
+            success: true, 
+            message: 'Item moved to deleted items', 
+            item: inventoryItem 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error', 
+            error: error.message 
+        });
+    }
+};
+
+// Restore deleted item
+const restoreItem = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { item_id } = req.body;
+
+        // Check if user has space in active inventory
+        const activeItemCount = await Inventory.count({ 
+            where: { user_id: userId, is_deleted: false } 
+        });
+        
+        if (activeItemCount >= MAX_ITEMS) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot restore item. Inventory limit of ${MAX_ITEMS} items reached`
+            });
+        }
+
+        const inventoryItem = await Inventory.findOne({ 
+            where: { user_id: userId, item_id, is_deleted: true } 
+        });
+        
+        if (!inventoryItem) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Item not found in deleted items' 
+            });
+        }
+
+        await inventoryItem.update({ is_deleted: false });
+        
+        res.status(200).json({ 
+            success: true, 
+            message: 'Item restored to active inventory', 
+            item: inventoryItem 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error', 
+            error: error.message 
+        });
+    }
+};
+
+// Get deleted items
+const getDeletedItems = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const items = await Inventory.findAll({
+            where: { user_id: userId, is_deleted: true },
+            include: [{ model: Item }]
+        });
+        res.status(200).json({ success: true, data: items });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error', 
+            error: error.message 
+        });
+    }
+};
+
+module.exports = { 
+    getInventory, 
+    addItemToInventory, 
+    removeItemFromInventory, 
+    softDeleteItem, 
+    restoreItem, 
+    getDeletedItems 
+};

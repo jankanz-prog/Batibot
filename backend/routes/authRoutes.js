@@ -4,7 +4,7 @@ const {login, register, createAdmin, changePassword, authenticateToken, requireA
 const { getProfile } = require("../controllers/profileController");
 const { uploadProfilePicture, deleteProfilePicture } = require('../controllers/profileUploadController');
 const upload = require('../middleware/upload');
-const { getInventory, addItemToInventory, removeItemFromInventory } = require("../controllers/inventoryController");
+const { getInventory, addItemToInventory, removeItemFromInventory, softDeleteItem, restoreItem, getDeletedItems } = require("../controllers/inventoryController");
 const { generateItemsManually } = require('../controllers/itemGenerationController');
 const { createNote, getAllNotes, getNoteById, updateNote, deleteNote, toggleFavorite} = require('../controllers/notesController');
 const {createItem, getAllItems, getItemById, updateItem, deleteItem} = require('../controllers/itemController');
@@ -22,8 +22,6 @@ router.get('/verify-token', authenticateToken, verifyToken);
 
 //Profile routes
 router.put('/profile', authenticateToken, updateProfile);
-router.get('/profile', authenticateToken, getProfile);
-
 // Profile picture upload routes
 router.post('/profile-picture', authenticateToken, upload.single('profilePicture'), uploadProfilePicture);
 router.delete('/profile-picture', authenticateToken, deleteProfilePicture);
@@ -32,12 +30,14 @@ router.delete('/profile-picture', authenticateToken, deleteProfilePicture);
 router.get('/inventory', authenticateToken, getInventory);
 router.post('/inventory', authenticateToken, addItemToInventory);
 router.delete('/inventory', authenticateToken, removeItemFromInventory);
+router.post('/inventory/soft-delete', authenticateToken, softDeleteItem);
+router.post('/inventory/restore', authenticateToken, restoreItem);
+router.get('/inventory/deleted', authenticateToken, getDeletedItems);
 
 // Notes routes
 router.post('/notes', authenticateToken, createNote);
 router.get('/notes', authenticateToken, getAllNotes);
 router.get('/notes/:id', authenticateToken, getNoteById);
-router.put('/notes/:id', authenticateToken, updateNote);
 router.delete('/notes/:id', authenticateToken, deleteNote);
 router.patch('/notes/:id/toggle-favorite', authenticateToken, toggleFavorite);
 

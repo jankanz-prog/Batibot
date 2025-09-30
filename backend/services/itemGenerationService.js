@@ -82,8 +82,8 @@ class ItemGenerationService {
     // Generate item for a specific user
     async generateItemForUser(user) {
         try {
-            // Check if user's inventory is full
-            const itemCount = await Inventory.count({ where: { user_id: user.id } });
+            // Check if user's inventory is full (only count non-deleted items)
+            const itemCount = await Inventory.count({ where: { user_id: user.id, is_deleted: false } });
 
             if (itemCount >= this.MAX_INVENTORY_ITEMS) {
                 console.log(`User ${user.username} inventory is full (${itemCount}/${this.MAX_INVENTORY_ITEMS}). Skipping item generation.`);
@@ -135,7 +135,8 @@ class ItemGenerationService {
             await Inventory.create({
                 user_id: user.id,
                 item_id: item.item_id,
-                quantity: 1
+                quantity: 1,
+                is_deleted: false
             });
 
             console.log(`Generated ${selectedRarity.name} ${selectedCategory.name} "${itemName}" for user ${user.username} (${itemCount + 1}/${this.MAX_INVENTORY_ITEMS})`);
@@ -150,6 +151,10 @@ class ItemGenerationService {
 
         } catch (error) {
             console.error(`Error generating item for user ${user.username}:`, error.message);
+            if (error.errors && error.errors.length > 0) {
+                console.error('Validation errors:', error.errors.map(e => `${e.path}: ${e.message}`).join(', '));
+            }
+            console.error('Full error:', error);
             return null;
         }
     }
