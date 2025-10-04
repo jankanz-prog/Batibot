@@ -13,7 +13,7 @@
 }
 
 .auth-form-container {
-    background: white;
+    background: var(--bg-primary, white);
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     overflow: hidden;
@@ -26,7 +26,7 @@
 .auth-form h2 {
     text-align: center;
     margin-bottom: 1.5rem;
-    color: #333;
+    color: var(--text-primary, #333);
     font-size: 1.8rem;
     font-weight: 600;
 }
@@ -38,7 +38,7 @@
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
-    color: #555;
+    color: var(--text-primary, #333);
     font-weight: 500;
     font-size: 0.9rem;
 }
@@ -47,11 +47,13 @@
 .form-group select {
     width: 100%;
     padding: 0.75rem;
-    border: 2px solid #e1e5e9;
+    border: 2px solid var(--border-color, #e1e5e9);
     border-radius: 8px;
     font-size: 1rem;
     transition: border-color 0.3s ease;
     box-sizing: border-box;
+    background-color: var(--bg-secondary, white);
+    color: var(--text-primary, #333);
 }
 
 .form-group input:focus,
@@ -63,7 +65,7 @@
 
 .form-group input:disabled,
 .form-group select:disabled {
-    background-color: #f8f9fa;
+    background-color: var(--bg-tertiary, #f8f9fa);
     cursor: not-allowed;
     opacity: 0.7;
 }
@@ -96,7 +98,7 @@
 .auth-switch {
     text-align: center;
     margin-top: 1.5rem;
-    color: #666;
+    color: var(--text-secondary, #666);
     font-size: 0.9rem;
 }
 

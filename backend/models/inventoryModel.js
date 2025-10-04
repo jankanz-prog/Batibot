@@ -33,6 +33,12 @@ const Inventory = sequelize.define('Inventory', {
         type: DataTypes.DATE,
         allowNull: false,
         defaultValue: DataTypes.NOW
+    },
+    is_deleted: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+        comment: 'Soft delete flag - true means item is in deleted items section'
     }
 }, {
     tableName: 'inventories',
