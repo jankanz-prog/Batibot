@@ -60,6 +60,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                                 >
                                      Items
                                 </button>
+                                <button
+                                    onClick={() => navigate('/chat')}
+                                    className={`nav-button ${location.pathname === '/chat' ? 'active' : ''}`}
+                                >
+                                    💬 Chat
+                                </button>
                                 {isAdmin && (
                                     <button
                                         onClick={() => navigate('/admin')}

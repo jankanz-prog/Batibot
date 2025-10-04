@@ -11,6 +11,7 @@ import { TradeOffersPage } from "./TradeOffersPage"
 import { ItemsPage } from "./ItemsPage"
 import { InventoryPage } from "./InventoryPage"
 import { AdminManagementPage } from "./AdminManagementPage"
+import { ChatPage } from "./ChatPage"
 
 export const AppWithTokenRefresh: React.FC = () => {
     useTokenRefresh()
@@ -24,6 +25,7 @@ export const AppWithTokenRefresh: React.FC = () => {
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/inventory" element={<InventoryPage />} />
                         <Route path="/items" element={<ItemsPage />} />
+                        <Route path="/chat" element={<ChatPage />} />
                         <Route path="/admin" element={
                             <ProtectedRoute requireAdmin={true}>
                                 <AdminManagementPage />

@@ -2,21 +2,18 @@
 const User = require('./userModel');
 const Inventory = require('./inventoryModel');
 const Item = require('./itemModel');
-const ChatMessage = require('./chatMessageModel');
-const MarketplaceListing = require('./marketplaceListingModel');
 const Trade = require('./tradeModel');
 const TradeItem = require('./tradeItemModel');
 const Wallet = require('./walletModel');
 const TrustScore = require('./trustScoreModel');
 const Notification = require('./notificationModel');
-const  Profile = require('./profileModel');
+const Profile = require('./profileModel');
 const Note = require('./noteModel');
+const ChatMessage = require('./chatMessageModel');
 const ItemRarity = require('./itemRarityModel');
 const ItemCategory = require('./itemCategoryModel');
 
-
 // User Inventory associations
-User.hasOne(Inventory, { foreignKey: 'user_id' });
 Inventory.belongsTo(User, { foreignKey: 'user_id' });
 Inventory.belongsTo(Item, { foreignKey: 'item_id' });
 Item.hasMany(Inventory, { foreignKey: 'item_id' });
@@ -31,14 +28,8 @@ ItemCategory.hasMany(Item, { foreignKey: 'category_id', as: 'Items' });
 //ChatMessage associations
 User.hasMany(ChatMessage, { foreignKey: 'sender_id', as: 'SentMessages' });
 User.hasMany(ChatMessage, { foreignKey: 'receiver_id', as: 'ReceivedMessages' });
-ChatMessage.belongsTo(User, { foreignKey: 'sender_id', as: 'Sender' });
-ChatMessage.belongsTo(User, { foreignKey: 'receiver_id', as: 'Receiver' });
-
-//MarketplaceListing associations
-User.hasMany(MarketplaceListing, { foreignKey: 'seller_id', as: 'Listings' });
-Item.hasMany(MarketplaceListing, { foreignKey: 'item_id', as: 'Listings' });
-MarketplaceListing.belongsTo(User, { foreignKey: 'seller_id', as: 'Seller' });
-MarketplaceListing.belongsTo(Item, { foreignKey: 'item_id', as: 'Item' });
+ChatMessage.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
+ChatMessage.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver' });
 
 // Trade associations
 User.hasMany(Trade, { foreignKey: 'sender_id', as: 'SentTrades' });
@@ -76,6 +67,6 @@ Note.belongsTo(User, { foreignKey: 'user_id', as: 'User' });
 
 
 module.exports = {
-    User, Inventory, Item, ItemRarity, ItemCategory, ChatMessage, MarketplaceListing,
+    User, Inventory, Item, ItemRarity, ItemCategory, ChatMessage,
     Trade, TradeItem, Wallet, TrustScore, Notification, Profile, Note
 };
