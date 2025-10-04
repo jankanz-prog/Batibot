@@ -18,7 +18,7 @@ const ChatMessage = sequelize.define('ChatMessage', {
     },
     receiver_id: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true, // Allow null for global chat
         references: {
             model: 'users',
             key: 'id'
@@ -26,10 +26,38 @@ const ChatMessage = sequelize.define('ChatMessage', {
     },
     content: {
         type: DataTypes.TEXT,
-        allowNull: false,
+        allowNull: true, // Allow null if only attachment is sent
         validate: {
-            notEmpty: true
+            // Custom validation: either content OR attachment must be present
+            contentOrAttachment() {
+                if (!this.content && !this.attachment_url) {
+                    throw new Error('Either content or attachment must be provided');
+                }
+            }
         }
+    },
+    // Attachment fields
+    attachment_url: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: 'URL/path to the attached file'
+    },
+    attachment_type: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+        comment: 'Type of attachment: image, pdf, doc, excel, video, audio, other'
+    },
+    attachment_filename: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: 'Original filename of the attachment'
+    },
+    // Message type for better organization
+    message_type: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+        defaultValue: 'text',
+        comment: 'Type of message: text, attachment, or mixed'
     },
     timestamp: {
         type: DataTypes.DATE,

@@ -1,11 +1,16 @@
 // app.js
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
 const sequelize = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
 const itemRoutes = require('./routes/itemRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const rarityRoutes = require('./routes/rarityRoutes');
+const chatRoutes = require('./routes/chatRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 const ItemGenerationService = require('./services/itemGenerationService');
 require('./models'); // This will load all models and associations
 
@@ -214,6 +219,34 @@ app.use('/api/auth', authRoutes);
 app.use('/api/items', itemRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/rarities', rarityRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/uploads', uploadRoutes);
+
+// Serve uploaded files statically (for viewing)
+app.use('/uploads', express.static('uploads'));
+
+// Download route (forces download with proper headers)
+app.get('/download/uploads/:folder/:filename', (req, res) => {
+    const { folder, filename } = req.params;
+    const filePath = path.join(__dirname, 'uploads', folder, filename);
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'File not found' });
+    }
+    
+    // Extract original filename from the stored filename (remove timestamp and user ID)
+    // Format: timestamp_userid_originalname
+    const parts = filename.split('_');
+    const originalName = parts.length >= 3 ? parts.slice(2).join('_') : filename;
+    
+    // Set headers to force download
+    res.setHeader('Content-Disposition', `attachment; filename="${originalName}"`);
+    res.setHeader('Content-Type', 'application/octet-stream');
+    
+    // Send file
+    res.sendFile(filePath);
+});
 
 // Connect to database and start server
 const PORT = process.env.PORT || 3001;
@@ -221,7 +254,7 @@ const PORT = process.env.PORT || 3001;
 sequelize.authenticate()
     .then(() => {
         console.log('PostgreSQL connected successfully');
-        return sequelize.sync({ force  : true }); // change to 'force: true' if you want to reset the database/if corrupted
+        return sequelize.sync({ alter: true }); // change to 'force: true' if you want to reset the database/if corrupted
     })
     .then(() => {
         console.log('Database tables created successfully');
@@ -237,7 +270,8 @@ sequelize.authenticate()
             console.error('Stack trace:', error.stack);
         }
 
-        app.listen(PORT, () => {
+        // Start server with WebSocket support
+        const server = app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
             console.log('\n🎮 ITEM SYSTEM SETUP GUIDE:');
             console.log('═'.repeat(50));
@@ -258,8 +292,18 @@ sequelize.authenticate()
             console.log('   → /items - Browse all items');
             console.log('   → /inventory - View personal inventory');
             console.log('   → /admin - Admin management (admin users only)');
+            console.log('');
+            console.log('💬 Chat Features:');
+            console.log('   → WebSocket endpoint: ws://localhost:' + PORT + '/chat');
+            console.log('   → REST API: /api/chat/messages');
+            console.log('   → File uploads: /api/uploads/chatUploads');
             console.log('═'.repeat(50));
         });
+
+        // Initialize WebSocket chat service
+        const chatService = require('./services/chatService');
+        chatService.initialize(server);
+        chatService.startHeartbeat();
     })
     .catch(err => {
         console.error('Database connection error:', err);
