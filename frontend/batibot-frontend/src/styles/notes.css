@@ -1,142 +1,5 @@
-.notes-page {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-}
-
-.notes-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-}
-
-.notes-header h1 {
-    color: var(--text-primary);
-    margin: 0;
-}
-
-.search-container {
-    margin-bottom: 2rem;
-}
-
-.search-input {
-    width: 100%;
-    max-width: 400px;
-    padding: 0.75rem;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 1rem;
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-}
-
-.notes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-}
-
-.note-card {
-    background: var(--bg-secondary);
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1.5rem;
-    transition: all 0.2s ease;
-}
-
-.note-card:hover {
-    border-color: var(--primary-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.note-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-}
-
-.note-title {
-    color: var(--text-primary);
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    flex: 1;
-    margin-right: 1rem;
-}
-
-.note-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.btn-icon {
-    background: none;
-    border: none;
-    padding: 0.25rem;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background-color 0.2s ease;
-}
-
-.btn-icon:hover {
-    background: var(--border-color);
-}
-
-.btn-icon.favorite-btn {
-    font-size: 1.5rem;
-    color: var(--text-secondary);
-    padding: 0.25rem 0.5rem;
-    transition: all 0.2s ease;
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-right: 0.5rem;
-}
-
-.btn-icon.favorite-btn:hover {
-    color: #f8b500;
-    transform: scale(1.1);
-}
-
-.btn-icon.favorite-btn.favorited {
-    color: #f8b500;
-}
-
-.note-content {
-    color: var(--text-secondary);
-    line-height: 1.6;
-    margin-bottom: 1rem;
-    white-space: pre-wrap;
-}
-
-.note-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-color);
-}
-
-.note-date {
-    color: var(--text-muted);
-    font-size: 0.875rem;
-}
-
-.no-notes {
-    grid-column: 1 / -1;
-    text-align: center;
-    color: var(--text-secondary);
-    font-size: 1.125rem;
-    padding: 3rem;
-}
+/* Notes Page Styles - Modern Dark Theme */
+/* Note: Main styles are in layout.css */
 
 /* Modal Styles */
 .modal-overlay {
@@ -145,149 +8,168 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.8);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    padding: 1rem;
 }
 
 .modal {
-    background: var(--bg-primary);
-    border-radius: 12px;
-    width: 90%;
-    max-width: 600px;
+    background: #1e293b;
+    border-radius: 20px;
+    padding: 2.5rem;
+    max-width: 700px;
+    width: 100%;
     max-height: 90vh;
     overflow-y: auto;
+    position: relative;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%);
 }
 
 .modal-small {
-    max-width: 400px;
+    max-width: 450px;
 }
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 2rem;
 }
 
 .modal-header h2 {
     margin: 0;
-    color: var(--text-primary);
+    color: #f1f5f9;
+    font-size: 1.8rem;
+    font-weight: 800;
 }
 
 .modal-close {
-    background: none;
+    background: rgba(139, 92, 246, 0.1);
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    color: var(--text-secondary);
-    padding: 0.25rem;
+    color: #94a3b8;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    line-height: 1;
 }
 
 .modal-close:hover {
-    color: var(--text-primary);
+    background: rgba(139, 92, 246, 0.2);
+    color: #f1f5f9;
 }
 
-.modal-body {
-    padding: 1.5rem;
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
-.note-form {
-    padding: 1.5rem;
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
+.modal-form label {
     display: block;
     margin-bottom: 0.5rem;
-    color: var(--text-primary);
-    font-weight: 500;
+    color: #e2e8f0;
+    font-weight: 600;
+    font-size: 0.95rem;
 }
 
-.form-input,
-.form-textarea {
+.modal-form input,
+.modal-form textarea {
     width: 100%;
-    padding: 0.75rem;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
+    padding: 1rem;
+    border: 2px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.5);
+    color: #f1f5f9;
     font-size: 1rem;
-    background: var(--bg-secondary);
-    color: var(--text-primary);
     font-family: inherit;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
 }
 
-.form-input:focus,
-.form-textarea:focus {
+.modal-form input::placeholder,
+.modal-form textarea::placeholder {
+    color: #64748b;
+}
+
+.modal-form input:focus,
+.modal-form textarea:focus {
     outline: none;
-    border-color: var(--primary-color);
+    border-color: #8b5cf6;
+    background: rgba(15, 23, 42, 0.8);
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
 }
 
-.form-textarea {
+.modal-form textarea {
+    min-height: 250px;
     resize: vertical;
-    min-height: 120px;
+    line-height: 1.6;
 }
 
-.form-actions {
+.modal-actions {
     display: flex;
     gap: 1rem;
-    justify-content: flex-end;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-color);
+    margin-top: 1rem;
 }
 
-.btn {
-    padding: 0.75rem 1.5rem;
+.modal-actions button {
+    flex: 1;
+    padding: 1rem;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.btn-primary {
-    background: var(--primary-color);
+.modal-actions button[type="submit"] {
+    background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
     color: white;
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
 }
 
-.btn-primary:hover {
-    background: var(--primary-hover);
+.modal-actions button[type="submit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.5);
 }
 
-.btn-secondary {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    border: 2px solid var(--border-color);
+.modal-actions button[type="button"] {
+    background: rgba(148, 163, 184, 0.1);
+    color: #94a3b8;
+    border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
-.btn-secondary:hover {
-    background: var(--border-color);
-}
-
-.btn-danger {
-    background: #dc3545;
-    color: white;
-}
-
-.btn-danger:hover {
-    background: #c82333;
+.modal-actions button[type="button"]:hover {
+    background: rgba(148, 163, 184, 0.2);
+    color: #e2e8f0;
 }
 
 .error-message {
-    background: #f8d7da;
-    color: #721c24;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
     padding: 1rem;
-    border-radius: 8px;
+    border-radius: 12px;
     margin-bottom: 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .error-close {
@@ -295,12 +177,17 @@
     border: none;
     font-size: 1.25rem;
     cursor: pointer;
-    color: #721c24;
+    color: #ef4444;
+    transition: color 0.3s ease;
+}
+
+.error-close:hover {
+    color: #dc2626;
 }
 
 .loading {
     text-align: center;
-    color: var(--text-secondary);
+    color: #94a3b8;
     font-size: 1.125rem;
     padding: 3rem;
 }

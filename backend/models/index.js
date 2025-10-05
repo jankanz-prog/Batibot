@@ -1,7 +1,10 @@
 // models/index.js
+// Load models in dependency order (parent tables first)
+const ItemRarity = require('./itemRarityModel');
+const ItemCategory = require('./itemCategoryModel');
 const User = require('./userModel');
-const Inventory = require('./inventoryModel');
 const Item = require('./itemModel');
+const Inventory = require('./inventoryModel');
 const Trade = require('./tradeModel');
 const TradeItem = require('./tradeItemModel');
 const Wallet = require('./walletModel');
@@ -10,8 +13,6 @@ const Notification = require('./notificationModel');
 const Profile = require('./profileModel');
 const Note = require('./noteModel');
 const ChatMessage = require('./chatMessageModel');
-const ItemRarity = require('./itemRarityModel');
-const ItemCategory = require('./itemCategoryModel');
 
 // User Inventory associations
 Inventory.belongsTo(User, { foreignKey: 'user_id' });

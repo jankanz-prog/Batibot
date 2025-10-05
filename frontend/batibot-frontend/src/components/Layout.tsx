@@ -113,10 +113,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                                 )}
                             </div>
 
-                            <span className="welcome-text">
-                                Welcome, {user.username}
+                            <div className="welcome-text">
+                                <span>Welcome, {user.username}</span>
                                 {isAdmin && <span className="admin-badge">Admin</span>}
-                            </span>
+                            </div>
+                            
                             <button onClick={logout} className="logout-button">
                                 Logout
                             </button>

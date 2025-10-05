@@ -1,10 +1,12 @@
-/* styles/items.css */
+/* styles/items.css - Modern Dark Theme */
 
 /* ===== ITEM MANAGEMENT LAYOUT ===== */
 .items-page {
     padding: 2rem;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
+    background: #0f172a;
+    min-height: 100vh;
 }
 
 .items-header {
@@ -17,10 +19,11 @@
 }
 
 .items-title {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--text-primary);
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #f1f5f9;
     margin: 0;
+    letter-spacing: -0.5px;
 }
 
 .admin-controls {
@@ -30,30 +33,32 @@
 }
 
 .admin-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
     color: white;
     border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 500;
+    padding: 0.875rem 1.75rem;
+    border-radius: 12px;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
 }
 
 .admin-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.5);
 }
 
 .admin-btn.danger {
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
 }
 
 .admin-btn.danger:hover {
-    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.5);
 }
 
 /* ===== ITEM GRID ===== */
@@ -67,18 +72,20 @@
 }
 
 .item-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
+    background: #1e293b;
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    border-radius: 16px;
     padding: 1.5rem;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .item-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(139, 92, 246, 0.3);
+    border-color: rgba(139, 92, 246, 0.3);
 }
 
 .item-card::before {
@@ -309,14 +316,25 @@
 }
 
 .modal-content {
-    background: var(--bg-primary);
-    border-radius: 12px;
-    padding: 2rem;
-    max-width: 500px;
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 2.5rem;
+    max-width: 650px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.modal-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%);
 }
 
 .modal-header {
@@ -329,26 +347,26 @@
 }
 
 .modal-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--text-primary);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #f1f5f9;
     margin: 0;
 }
 
 .modal-close {
-    background: none;
+    background: rgba(139, 92, 246, 0.1);
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    color: var(--text-secondary);
+    color: #94a3b8;
     padding: 0.5rem;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    border-radius: 8px;
+    transition: all 0.3s ease;
 }
 
 .modal-close:hover {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
+    background: rgba(139, 92, 246, 0.2);
+    color: #f1f5f9;
 }
 
 /* ===== FORM STYLES ===== */
@@ -364,42 +382,48 @@
     gap: 0.5rem;
 }
 
-.form-label {
-    font-weight: 500;
-    color: var(--text-primary);
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #e2e8f0;
+    font-weight: 600;
     font-size: 0.9rem;
 }
 
-.form-input,
-.form-select,
-.form-textarea {
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background: var(--bg-secondary);
-    color: var(--text-primary);
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.5);
+    color: #f1f5f9;
     font-size: 1rem;
-    transition: all 0.2s ease;
+    font-family: inherit;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
 }
 
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
+.form-group input::placeholder,
+.form-group textarea::placeholder,
+.form-group select::placeholder {
+    color: #64748b;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
     outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.1);
+    border-color: #8b5cf6;
+    background: rgba(15, 23, 42, 0.8);
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
 }
 
-.form-textarea {
+.form-group textarea {
+    min-height: 200px;
     resize: vertical;
-    min-height: 100px;
-}
-
-.form-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-top: 0.5rem;
+    line-height: 1.6;
 }
 
 .form-checkbox input {

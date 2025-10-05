@@ -252,12 +252,37 @@ app.get('/download/uploads/:folder/:filename', (req, res) => {
 const PORT = process.env.PORT || 3001;
 
 sequelize.authenticate()
-    .then(() => {
+    .then(async () => {
         console.log('PostgreSQL connected successfully');
-        return sequelize.sync({ alter: true }); // change to 'force: true' if you want to reset the database/if corrupted
+        
+        // Import models in dependency order
+        const { ItemRarity, ItemCategory, User, Item, Inventory, Trade, TradeItem, 
+                Wallet, TrustScore, Notification, Profile, Note, ChatMessage } = require('./models');
+        
+        // Sync models in dependency order to avoid foreign key errors
+        if (process.env.RESET_DB === 'true') {
+            await sequelize.sync({ force: true });
+            console.log('Database reset and tables created successfully');
+        } else {
+            // Sync in order: parent tables first, then child tables
+            await ItemRarity.sync({ alter: true });
+            await ItemCategory.sync({ alter: true });
+            await User.sync({ alter: true });
+            await Item.sync({ alter: true });
+            await Inventory.sync({ alter: true });
+            await Trade.sync({ alter: true });
+            await TradeItem.sync({ alter: true });
+            await Wallet.sync({ alter: true });
+            await TrustScore.sync({ alter: true });
+            await Notification.sync({ alter: true });
+            await Profile.sync({ alter: true });
+            await Note.sync({ alter: true });
+            await ChatMessage.sync({ alter: true });
+            console.log('Database tables synced successfully');
+        }
     })
     .then(() => {
-        console.log('Database tables created successfully');
+        console.log('Database setup complete');
 
         // Initialize and start item generation service
         // TEMPORARILY DISABLED for soft-delete implementation

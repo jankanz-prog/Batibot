@@ -1,0 +1,366 @@
+/* Enhanced Responsive Design */
+
+/* Mobile First Approach */
+
+/* Extra Small Devices (phones, less than 576px) */
+@media (max-width: 575px) {
+    .app-header {
+        padding: 0.75rem 0;
+    }
+
+    .header-content {
+        padding: 0 1rem;
+        gap: 1rem;
+    }
+
+    .app-title {
+        font-size: 1.3rem;
+    }
+
+    .nav-menu {
+        display: none; /* Hide nav on mobile, use hamburger menu */
+    }
+
+    .user-info {
+        gap: 0.5rem;
+    }
+
+    .welcome-text {
+        font-size: 0.85rem;
+    }
+
+    .header-profile-picture {
+        width: 36px;
+        height: 36px;
+    }
+
+    .logout-button {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .admin-badge {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.65rem;
+    }
+
+    /* Dashboard */
+    .dashboard-content {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        padding: 1.25rem;
+    }
+
+    .quick-actions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Modals */
+    .modal,
+    .trade-offer-modal,
+    .modal-content {
+        max-width: 100%;
+        margin: 0.5rem;
+        padding: 1.5rem;
+        border-radius: 16px;
+    }
+
+    .modal-header {
+        padding: 1rem;
+    }
+
+    .modal-header h2 {
+        font-size: 1.3rem;
+    }
+
+    /* Forms */
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+
+    /* Buttons */
+    .action-button,
+    .admin-btn,
+    .create-note-button {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9rem;
+    }
+
+    /* Cards */
+    .item-card,
+    .note-card {
+        padding: 1rem;
+    }
+
+    /* Chat */
+    .chat-container {
+        height: calc(100vh - 120px);
+    }
+
+    .message-input {
+        padding: 0.75rem;
+    }
+}
+
+/* Small Devices (landscape phones, 576px and up) */
+@media (min-width: 576px) and (max-width: 767px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .items-grid,
+    .inventory-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .notes-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Medium Devices (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .header-content {
+        gap: 2rem;
+    }
+
+    .nav-menu {
+        gap: 0.35rem;
+    }
+
+    .nav-button {
+        padding: 0.5rem 0.9rem;
+        font-size: 0.85rem;
+    }
+
+    .dashboard-content {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .items-grid,
+    .inventory-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .notes-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .badges-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Large Devices (desktops, 992px and up) */
+@media (min-width: 992px) and (max-width: 1199px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .quick-actions-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .items-grid,
+    .inventory-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .notes-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .badges-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Extra Large Devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .quick-actions-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .items-grid,
+    .inventory-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+
+    .notes-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .badges-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Landscape Orientation */
+@media (max-height: 600px) and (orientation: landscape) {
+    .app-header {
+        position: sticky;
+        top: 0;
+    }
+
+    .chat-container {
+        height: calc(100vh - 100px);
+    }
+
+    .modal,
+    .trade-offer-modal {
+        max-height: 95vh;
+    }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+    /* Increase touch targets */
+    .nav-button,
+    .action-button,
+    button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Remove hover effects on touch devices */
+    .item-card:hover,
+    .note-card:hover,
+    .stat-card:hover {
+        transform: none;
+    }
+
+    /* Larger tap areas */
+    .close-button,
+    .modal-close {
+        padding: 0.75rem;
+    }
+}
+
+/* High DPI Screens */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    /* Sharper borders and shadows */
+    .item-card,
+    .note-card,
+    .stat-card {
+        border-width: 0.5px;
+    }
+}
+
+/* Dark Mode Support (System Preference) */
+@media (prefers-color-scheme: dark) {
+    /* Already dark by default, but can add overrides */
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .spinner {
+        animation: none;
+        border-top-color: transparent;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .app-header,
+    .app-footer,
+    .nav-menu,
+    .action-button,
+    button {
+        display: none !important;
+    }
+
+    .app-main {
+        padding: 0;
+    }
+
+    .item-card,
+    .note-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
+
+/* Container Queries (Modern Browsers) */
+@container (max-width: 600px) {
+    .stat-card {
+        padding: 1rem;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+    }
+}
+
+/* Utility Classes for Responsive */
+.hide-mobile {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .hide-mobile {
+        display: block;
+    }
+}
+
+.hide-desktop {
+    display: block;
+}
+
+@media (min-width: 768px) {
+    .hide-desktop {
+        display: none;
+    }
+}
+
+.mobile-only {
+    display: block;
+}
+
+@media (min-width: 768px) {
+    .mobile-only {
+        display: none;
+    }
+}
+
+.desktop-only {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .desktop-only {
+        display: block;
+    }
+}
