@@ -23,7 +23,14 @@ const corsOptions = {
             process.env.FRONTEND_URL || 'http://localhost:5173',
             'http://localhost:5174',
             'http://127.0.0.1:58516',
-            /^http:\/\/127\.0\.0\.1:\d+$/  // Allow any port on 127.0.0.1
+            // Network IPs for LAN access
+            'http://172.29.64.1:5173',
+            'http://192.168.1.23:5173', 
+            'http://192.168.56.1:5173',
+            /^http:\/\/127\.0\.0\.1:\d+$/,  // Allow any port on 127.0.0.1
+            /^http:\/\/192\.168\.\d+\.\d+:5173$/,  // Allow any 192.168.x.x IP on port 5173
+            /^http:\/\/172\.\d+\.\d+\.\d+:5173$/,  // Allow any 172.x.x.x IP on port 5173
+            /^http:\/\/10\.\d+\.\d+\.\d+:5173$/    // Allow any 10.x.x.x IP on port 5173
         ];
 
         // Allow requests with no origin (like mobile apps or curl requests)
@@ -271,7 +278,7 @@ sequelize.authenticate()
         }
 
         // Start server with WebSocket support
-        const server = app.listen(PORT, () => {
+        const server = app.listen(PORT, '0.0.0.0', () => {
             console.log(`Server running on port ${PORT}`);
             console.log('\n🎮 ITEM SYSTEM SETUP GUIDE:');
             console.log('═'.repeat(50));

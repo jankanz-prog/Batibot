@@ -18,7 +18,10 @@ class WebSocketService {
     connect(token: string): Promise<void> {
         return new Promise((resolve, reject) => {
             this.token = token;
-            const wsUrl = `ws://localhost:3001/chat?token=${token}`;
+            // Use environment variable or fallback to localhost
+            const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+            const wsBaseUrl = baseUrl.replace('http://', 'ws://').replace('/api', '');
+            const wsUrl = `${wsBaseUrl}/chat?token=${token}`;
             
             console.log('🔌 Connecting to WebSocket:', wsUrl);
             
