@@ -57,8 +57,9 @@ export const AttachmentModal: React.FC<AttachmentModalProps> = ({
         const filename = urlParts[3]; // actual filename
         
         // Use the download route that forces download
+        const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
         const link = document.createElement('a');
-        link.href = `http://localhost:3001/download/uploads/${folder}/${filename}`;
+        link.href = `${serverUrl}/download/uploads/${folder}/${filename}`;
         link.download = attachment.filename; // This will be overridden by server response
         document.body.appendChild(link);
         link.click();
@@ -66,7 +67,8 @@ export const AttachmentModal: React.FC<AttachmentModalProps> = ({
     };
 
     const renderContent = () => {
-        const fullUrl = `http://localhost:3001${attachment.url}`;
+        const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+        const fullUrl = `${serverUrl}${attachment.url}`;
 
         switch (attachment.type) {
             case 'image':

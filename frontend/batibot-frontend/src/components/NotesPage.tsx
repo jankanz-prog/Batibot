@@ -356,7 +356,7 @@ export const NotesPage: React.FC = () => {
                                     {note.title}
                                 </h3>
                                 <div className="note-actions">
-                                    <button 
+                                    <button
                                         className={`btn-icon favorite-btn ${note.favorited ? 'favorited' : ''}`}
                                         onClick={() => handleToggleFavorite(note.id)}
                                         title={note.favorited ? "Remove from favorites" : "Add to favorites"}
