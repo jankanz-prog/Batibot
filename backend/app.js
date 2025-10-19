@@ -12,6 +12,7 @@ const rarityRoutes = require('./routes/rarityRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const ItemGenerationService = require('./services/itemGenerationService');
+const { autoSeedDatabase } = require('./config/autoSeeder');
 require('./models'); // This will load all models and associations
 
 const app = express();
@@ -263,8 +264,11 @@ sequelize.authenticate()
         console.log('PostgreSQL connected successfully');
         return sequelize.sync({ alter: true }); // change to 'force: true' if you want to reset the database/if corrupted
     })
-    .then(() => {
+    .then(async () => {
         console.log('Database tables created successfully');
+
+        // Auto-seed database with initial data if tables are empty
+        await autoSeedDatabase();
 
         // Initialize and start item generation service
         // TEMPORARILY DISABLED for soft-delete implementation
@@ -282,9 +286,9 @@ sequelize.authenticate()
             console.log(`Server running on port ${PORT}`);
             console.log('\n🎮 ITEM SYSTEM SETUP GUIDE:');
             console.log('═'.repeat(50));
-            console.log('📋 To set up the item system for the first time:');
-            console.log('   → Run: node item-system-utils/setup-initial-data.js');
-            console.log('   → This creates initial rarities and categories');
+            console.log('🌱 Database Seeding:');
+            console.log('   → Auto-seeding: ENABLED (runs automatically on startup)');
+            console.log('   → Manual setup: node item-system-utils/setup-initial-data.js (optional)');
             console.log('');
             console.log('🔍 To check item generation status:');
             console.log('   → Run: node item-system-utils/debug-item-generation.js');
