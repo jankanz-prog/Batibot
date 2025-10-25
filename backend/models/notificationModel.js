@@ -16,12 +16,20 @@ const Notification = sequelize.define('Notification', {
         }
     },
     type: {
-        type: DataTypes.ENUM('Trade', 'ItemDrop', 'Auction', 'System'),
+        type: DataTypes.ENUM('Trade', 'ItemDrop', 'Auction', 'System', 'Chat'),
         allowNull: false
+    },
+    title: {
+        type: DataTypes.STRING,
+        allowNull: true
     },
     message: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    related_id: {
+        type: DataTypes.STRING,
+        allowNull: true
     },
     is_read: {
         type: DataTypes.BOOLEAN,

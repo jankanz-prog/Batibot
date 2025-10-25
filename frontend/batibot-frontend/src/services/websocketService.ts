@@ -9,6 +9,7 @@ class WebSocketService {
     private reconnectDelay = 1000;
     private listeners: { [key: string]: ((data: any) => void)[] } = {};
     private heartbeatInterval: NodeJS.Timeout | null = null;
+    private isConnecting = false;
 
     constructor() {
         this.listeners = {};
@@ -16,7 +17,19 @@ class WebSocketService {
 
     // Connect to WebSocket
     connect(token: string): Promise<void> {
+        // Prevent duplicate connections
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            console.log('✅ Already connected to chat WebSocket');
+            return Promise.resolve();
+        }
+        
+        if (this.isConnecting) {
+            console.log('⏳ Already connecting to chat WebSocket');
+            return Promise.resolve();
+        }
+
         return new Promise((resolve, reject) => {
+            this.isConnecting = true;
             this.token = token;
             // Use environment variable or fallback to localhost
             const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
@@ -29,6 +42,7 @@ class WebSocketService {
 
             this.ws.onopen = () => {
                 console.log('✅ WebSocket connected');
+                this.isConnecting = false;
                 this.reconnectAttempts = 0;
                 this.startHeartbeat();
                 this.emit('connected', true);
@@ -57,6 +71,7 @@ class WebSocketService {
 
             this.ws.onerror = (error) => {
                 console.error('❌ WebSocket error:', error);
+                this.isConnecting = false;
                 this.emit('error', error);
                 reject(error);
             };
@@ -74,6 +89,10 @@ class WebSocketService {
                 break;
             case 'message_sent':
                 this.emit('messageSent', data.data);
+                break;
+            case 'new_notification':
+                console.log('📨 WebSocket received new_notification event:', data.data);
+                this.emit('newNotification', data.data);
                 break;
             case 'user_typing_start':
                 this.emit('userTypingStart', data.data);
@@ -202,6 +221,8 @@ class WebSocketService {
     disconnect() {
         console.log('🔌 Disconnecting WebSocket');
         this.stopHeartbeat();
+        this.isConnecting = false;
+        this.reconnectAttempts = 0;
         
         if (this.ws) {
             this.ws.close(1000, 'Client disconnect');
@@ -209,7 +230,6 @@ class WebSocketService {
         }
         
         this.listeners = {};
-        this.reconnectAttempts = 0;
     }
 
     // Get connection status

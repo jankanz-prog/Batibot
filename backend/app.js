@@ -11,6 +11,7 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const rarityRoutes = require('./routes/rarityRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 const ItemGenerationService = require('./services/itemGenerationService');
 const { autoSeedDatabase } = require('./config/autoSeeder');
 require('./models'); // This will load all models and associations
@@ -229,6 +230,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/rarities', rarityRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/uploads', uploadRoutes);
+app.use('/api', notificationRoutes);
 
 // Serve uploaded files statically (for viewing)
 app.use('/uploads', express.static('uploads'));

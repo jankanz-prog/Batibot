@@ -5,6 +5,7 @@ const Item = require('../models/itemModel');
 const ItemRarity = require('../models/itemRarityModel');
 const ItemCategory = require('../models/itemCategoryModel');
 const Inventory = require('../models/inventoryModel');
+const { createNotification } = require('../controllers/notificationController');
 
 class ItemGenerationService {
     constructor() {
@@ -140,6 +141,19 @@ class ItemGenerationService {
             });
 
             console.log(`Generated ${selectedRarity.name} ${selectedCategory.name} "${itemName}" for user ${user.username} (${itemCount + 1}/${this.MAX_INVENTORY_ITEMS})`);
+
+            // Send notification about the item drop
+            try {
+                await createNotification({
+                    user_id: user.id,
+                    type: 'ItemDrop',
+                    title: '🎁 New Item Received!',
+                    message: `You received a ${selectedRarity.name} ${selectedCategory.name}: ${itemName}`,
+                    related_id: item.item_id.toString()
+                });
+            } catch (notifError) {
+                console.error('Failed to create item drop notification:', notifError.message);
+            }
 
             return {
                 item,
