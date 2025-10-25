@@ -36,29 +36,34 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     const [isConnected, setIsConnected] = useState(false);
     const [typingUsers, setTypingUsers] = useState<{ [key: string]: ChatUser }>({});
     
-    // Refs for managing timeouts
+    // Refs for managing timeouts and connection state
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isTypingRef = useRef(false);
+    const isInitializingRef = useRef(false);
 
-    // Initialize WebSocket connection
+    // Set up chat event listeners (WebSocket is already connected globally)
     useEffect(() => {
-        if (user && token) {
-            console.log('🔄 Initializing chat connection for user:', user.username);
+        if (user && token && !isInitializingRef.current) {
+            console.log('💬 Setting up chat event listeners (WebSocket already connected globally)');
+            isInitializingRef.current = true;
             initializeChat();
         }
 
         return () => {
-            websocketService.disconnect();
+            console.log('🧹 Removing chat event listeners (keeping WebSocket connected)');
+            isInitializingRef.current = false;
+            // NOTE: We do NOT disconnect WebSocket here - it stays connected globally
+            // Event listeners will be cleaned up when component re-renders
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, token]);
 
-    // Initialize chat connection and event listeners
+    // Initialize chat event listeners (WebSocket already connected by NotificationContext)
     const initializeChat = async () => {
         try {
-            // Connect to WebSocket
-            await websocketService.connect(token);
+            console.log('✅ Using existing global WebSocket connection for chat');
             
-            // Set up event listeners
+            // Set up chat-specific event listeners
             websocketService.on('connected', setIsConnected);
             websocketService.on('newMessage', handleNewMessage);
             websocketService.on('messageSent', handleMessageSent);
@@ -67,6 +72,9 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
             websocketService.on('userStatus', handleUserStatus);
             websocketService.on('onlineUsersList', handleOnlineUsersList);
             websocketService.on('error', handleWebSocketError);
+            
+            // Mark as connected since WebSocket is already connected
+            setIsConnected(true);
 
             // Load initial data
             await loadConversations();

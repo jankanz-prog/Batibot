@@ -42,7 +42,7 @@ export interface WebSocketMessage {
 }
 
 export interface WebSocketResponse {
-    type: 'connection_success' | 'new_message' | 'message_sent' | 'user_typing_start' | 'user_typing_stop' | 'user_status' | 'online_users_list' | 'error' | 'heartbeat_response';
+    type: 'connection_success' | 'new_message' | 'message_sent' | 'new_notification' | 'user_typing_start' | 'user_typing_stop' | 'user_status' | 'online_users_list' | 'error' | 'heartbeat_response';
     data?: any;
     message?: string;
     user?: ChatUser;

@@ -3,6 +3,7 @@ const WebSocket = require('ws');
 const jwt = require('jsonwebtoken');
 const ChatMessage = require('../models/chatMessageModel');
 const User = require('../models/userModel');
+const { createNotification } = require('../controllers/notificationController');
 
 class ChatService {
     constructor() {
@@ -201,6 +202,20 @@ class ChatService {
                 data: completeMessage
             }));
 
+            // Create notification for the receiver
+            try {
+                await createNotification({
+                    user_id: parseInt(receiver_id),
+                    type: 'Chat',
+                    title: `💬 New message from ${ws.username}`,
+                    message: content || 'Sent an attachment',
+                    related_id: ws.userId.toString() // Store sender's user_id for navigation
+                });
+                console.log(`🔔 Chat notification created for user ${receiver_id}`);
+            } catch (notifError) {
+                console.error('Failed to create chat notification:', notifError);
+            }
+
             console.log(`💌 DM from ${ws.username} to user ${receiver_id} ${receiverWs ? 'delivered' : 'queued (user offline)'}`);
         }
     }
@@ -315,6 +330,21 @@ class ChatService {
             type: 'online_users_list',
             data: onlineUsers
         }));
+    }
+
+    // Send notification to specific user
+    sendNotificationToUser(userId, notificationData) {
+        const ws = this.clients.get(userId);
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                type: 'new_notification',
+                data: notificationData
+            }));
+            console.log(`🔔 Notification sent to user ${userId} via chat WebSocket`);
+            return true;
+        }
+        console.log(`📬 User ${userId} offline, notification saved to database`);
+        return false;
     }
 
     // Heartbeat to keep connections alive
