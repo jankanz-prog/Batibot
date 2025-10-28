@@ -33,18 +33,21 @@ export interface ChatConversation {
 
 // WebSocket message types
 export interface WebSocketMessage {
-    type: 'send_message' | 'typing_start' | 'typing_stop' | 'heartbeat';
+    type: 'send_message' | 'typing_start' | 'typing_stop' | 'heartbeat' | 'trade_request' | 'trade_update' | 'trade_accept' | 'trade_cancel';
     receiver_id?: string | number;
     content?: string;
     attachment_url?: string;
     attachment_type?: string;
     attachment_filename?: string;
+    trade_session_id?: string;
+    offered_items?: any[];
 }
 
 export interface WebSocketResponse {
-    type: 'connection_success' | 'new_message' | 'message_sent' | 'new_notification' | 'user_typing_start' | 'user_typing_stop' | 'user_status' | 'online_users_list' | 'error' | 'heartbeat_response';
+    type: 'connection_success' | 'new_message' | 'message_sent' | 'new_notification' | 'user_typing_start' | 'user_typing_stop' | 'user_status' | 'online_users_list' | 'error' | 'heartbeat_response' | 'trade_request' | 'trade_request_sent' | 'trade_update' | 'trade_accepted' | 'trade_cancelled';
     data?: any;
     message?: string;
+    error?: string;
     user?: ChatUser;
 }
 

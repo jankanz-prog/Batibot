@@ -1,85 +1,61 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useAuth } from "../context/AuthContext"
+import { tradeAPI } from "../services/tradeAPI"
 import { TradeOfferModal } from "./TradeOfferModal"
 
-interface TradeItem {
-    id: string
+interface MarketplaceItem {
+    inventory_id: string
+    item_id: number
     name: string
-    rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'
-    image?: string
-    timeLeft: string
-    percentage: number
-    seller: string
-    isStarred?: boolean
+    description: string
+    rarity: string
+    category: string
     value: number
+    quantity: number
+    seller_id: number
+    seller: string
+    image?: string
 }
 
-// Mock data for demonstration
-const mockTradeItems: TradeItem[] = [
-    {
-        id: '1',
-        name: 'Specialized Killstreaks',
-        rarity: 'rare',
-        timeLeft: '3h 58m 19s',
-        percentage: 1,
-        seller: 'FERRAN',
-        isStarred: false,
-        value: 45.50
-    },
-    {
-        id: '2',
-        name: 'Blue And Green Gem',
-        rarity: 'epic',
-        timeLeft: '1h 58m 12s',
-        percentage: 1,
-        seller: 'shadowworld92',
-        value: 32.75
-    },
-    {
-        id: '3',
-        name: 'Festi ughhhhh',
-        rarity: 'uncommon',
-        timeLeft: '3h 56m 46s',
-        percentage: 2,
-        seller: 'Frend',
-        value: 8.50
-    },
-    {
-        id: '4',
-        name: 'STUFF',
-        rarity: 'legendary',
-        timeLeft: '3h 53m 6s',
-        percentage: 3,
-        seller: 'Tricksie',
-        value: 125.00
-    },
-    {
-        id: '5',
-        name: 'Overcharged Le Sapeur',
-        rarity: 'rare',
-        timeLeft: '2h 53m 5s',
-        percentage: 4,
-        seller: 'voxpop',
-        value: 28.25
-    },
-    {
-        id: '6',
-        name: 'Burstchester Unusualifier',
-        rarity: 'epic',
-        timeLeft: '1h 48m 44s',
-        percentage: 5,
-        seller: 'MrKiller1001',
-        value: 67.80
-    }
-]
-
 export const TradePage: React.FC = () => {
+    const { token } = useAuth()
     const [selectedFilter, setSelectedFilter] = useState<'all' | 'starred'>('all')
     const [searchTerm, setSearchTerm] = useState('')
     const [isTradeModalOpen, setIsTradeModalOpen] = useState(false)
-    const [selectedTradeItem, setSelectedTradeItem] = useState<{ name: string; seller: string; value: number } | null>(null)
+    const [selectedTradeItem, setSelectedTradeItem] = useState<{ item_id: number; name: string; seller: string; seller_id: number; value: number } | null>(null)
+    const [marketplaceItems, setMarketplaceItems] = useState<MarketplaceItem[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+
+    // Load marketplace items
+    useEffect(() => {
+        const loadMarketplace = async () => {
+            if (!token) return
+            
+            try {
+                setIsLoading(true)
+                setError(null)
+                const response = await tradeAPI.getMarketplaceItems(token)
+                
+                if (response.success) {
+                    setMarketplaceItems(response.data)
+                    console.log('✅ Loaded marketplace items:', response.data.length)
+                } else {
+                    setError(response.message || 'Failed to load marketplace')
+                }
+            } catch (err: any) {
+                console.error('❌ Failed to load marketplace:', err)
+                setError(err.message || 'Failed to load marketplace items')
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        loadMarketplace()
+    }, [token])
 
     const getRarityGradient = (rarity: string) => {
         switch (rarity) {
@@ -92,16 +68,28 @@ export const TradePage: React.FC = () => {
         }
     }
 
-    const filteredItems = mockTradeItems.filter(item => {
+    const filteredItems = marketplaceItems.filter(item => {
         const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             item.seller.toLowerCase().includes(searchTerm.toLowerCase())
-        const matchesFilter = selectedFilter === 'all' || (selectedFilter === 'starred' && item.isStarred)
+        // TODO: Implement starred/favorite feature if needed
+        const matchesFilter = selectedFilter === 'all'
         return matchesSearch && matchesFilter
     })
 
-    const handleOfferTrade = (itemName: string, seller: string, value: number) => {
-        setSelectedTradeItem({ name: itemName, seller, value })
+    const handleOfferTrade = (item: MarketplaceItem) => {
+        setSelectedTradeItem({ 
+            item_id: item.item_id,
+            name: item.name, 
+            seller: item.seller,
+            seller_id: item.seller_id, 
+            value: item.value 
+        })
         setIsTradeModalOpen(true)
+    }
+
+    const handleLiveTrade = (item: MarketplaceItem) => {
+        // TODO: Implement live trading feature (real-time WebSocket trading)
+        alert(`⚡ Live Trade with ${item.seller}\n\nThis feature enables real-time trading!\n\nComing soon... For now, use "Offer Trade" to send an offline trade offer.`)
     }
 
     const closeTradeModal = () => {
@@ -116,69 +104,93 @@ export const TradePage: React.FC = () => {
                 <p>Browse and trade items with other players</p>
             </div>
 
-            <div className="trade-filters">
-                <div className="filter-buttons">
-                    <button 
-                        className={`filter-btn ${selectedFilter === 'all' ? 'active' : ''}`}
-                        onClick={() => setSelectedFilter('all')}
-                    >
-                        All Auctions
-                    </button>
-                    <button 
-                        className={`filter-btn ${selectedFilter === 'starred' ? 'active' : ''}`}
-                        onClick={() => setSelectedFilter('starred')}
-                    >
-                        My Auctions
-                    </button>
+            {isLoading && (
+                <div className="loading-state">
+                    <p>Loading marketplace items...</p>
                 </div>
+            )}
 
-                <div className="search-container">
-                    <input
-                        type="text"
-                        placeholder="Search items or sellers..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
-                    />
+            {error && (
+                <div className="error-state">
+                    <p>❌ {error}</p>
+                    <button onClick={() => window.location.reload()}>Retry</button>
                 </div>
-            </div>
+            )}
 
-            <div className="trade-grid">
-                {filteredItems.map((item) => (
-                    <div key={item.id} className="trade-item-card">
-                        <div 
-                            className="item-header"
-                            style={{ background: getRarityGradient(item.rarity) }}
-                        >
-                            <div className="item-image-placeholder">
-                                <div className="item-icon">🎮</div>
-                            </div>
-                            <div className="item-percentage">{item.percentage}%</div>
+            {!isLoading && !error && (
+                <>
+                    <div className="trade-filters">
+                        <div className="filter-buttons">
+                            <button 
+                                className={`filter-btn ${selectedFilter === 'all' ? 'active' : ''}`}
+                                onClick={() => setSelectedFilter('all')}
+                            >
+                                All Auctions
+                            </button>
+                            <button 
+                                className={`filter-btn ${selectedFilter === 'starred' ? 'active' : ''}`}
+                                onClick={() => setSelectedFilter('starred')}
+                            >
+                                My Auctions
+                            </button>
                         </div>
 
-                        <div className="item-content">
-                            <h3 className="item-name">{item.name}</h3>
-                            <p className="item-seller">By <span className="seller-name">{item.seller}</span></p>
-                            <p className="item-time">Ending in {item.timeLeft}</p>
-                            <p className="item-value">${item.value.toFixed(2)}</p>
-                            
-                            <div className="item-actions">
-                                <button 
-                                    className="offer-trade-btn"
-                                    onClick={() => handleOfferTrade(item.name, item.seller, item.value)}
-                                >
-                                    Offer Trade
-                                </button>
-                            </div>
+                        <div className="search-container">
+                            <input
+                                type="text"
+                                placeholder="Search items or sellers..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="search-input"
+                            />
                         </div>
                     </div>
-                ))}
-            </div>
 
-            {filteredItems.length === 0 && (
-                <div className="no-items">
-                    <p>No items found matching your criteria.</p>
-                </div>
+                    <div className="trade-grid">
+                        {filteredItems.map((item) => (
+                            <div key={item.inventory_id} className="trade-item-card">
+                                <div 
+                                    className="item-header"
+                                    style={{ background: getRarityGradient(item.rarity.toLowerCase()) }}
+                                >
+                                    <div className="item-image-placeholder">
+                                        <div className="item-icon">🎮</div>
+                                    </div>
+                                    <div className="item-rarity-badge">{item.rarity}</div>
+                                </div>
+
+                                <div className="item-content">
+                                    <h3 className="item-name">{item.name}</h3>
+                                    <p className="item-category">{item.category}</p>
+                                    <p className="item-seller">By <span className="seller-name">{item.seller}</span></p>
+                                    <p className="item-quantity">Quantity: {item.quantity}</p>
+                                    <p className="item-value">${Number(item.value || 0).toFixed(2)}</p>
+                                    
+                                    <div className="item-actions">
+                                        <button 
+                                            className="offer-trade-btn"
+                                            onClick={() => handleOfferTrade(item)}
+                                        >
+                                            📨 Offer Trade
+                                        </button>
+                                        <button 
+                                            className="live-trade-btn"
+                                            onClick={() => handleLiveTrade(item)}
+                                        >
+                                            ⚡ Live Trade
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {filteredItems.length === 0 && !isLoading && (
+                        <div className="no-items">
+                            <p>No items found matching your criteria.</p>
+                        </div>
+                    )}
+                </>
             )}
 
             {/* Trade Offer Modal */}
@@ -186,7 +198,9 @@ export const TradePage: React.FC = () => {
                 <TradeOfferModal
                     isOpen={isTradeModalOpen}
                     onClose={closeTradeModal}
+                    targetUserId={selectedTradeItem.seller_id}
                     targetUser={selectedTradeItem.seller}
+                    targetItemId={selectedTradeItem.item_id}
                     targetItem={selectedTradeItem.name}
                     targetItemValue={selectedTradeItem.value}
                 />

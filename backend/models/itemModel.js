@@ -43,6 +43,12 @@ const Item = sequelize.define('Item', {
         defaultValue: true,
         comment: 'Whether this item can be traded between users'
     },
+    value: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: 0.00,
+        comment: 'Trading value of the item'
+    },
     metadata_uri: {
         type: DataTypes.STRING,
         allowNull: true

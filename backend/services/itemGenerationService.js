@@ -80,6 +80,23 @@ class ItemGenerationService {
         return descriptions[category.name] || `A ${rarity.name} ${itemName}.`;
     }
 
+    // Generate item value based on rarity
+    generateItemValue(rarity) {
+        const valueRanges = {
+            'common': { min: 1, max: 10 },
+            'uncommon': { min: 10, max: 30 },
+            'rare': { min: 30, max: 75 },
+            'epic': { min: 75, max: 150 },
+            'legendary': { min: 150, max: 500 }
+        };
+
+        const range = valueRanges[rarity.name] || valueRanges['common'];
+        const value = Math.random() * (range.max - range.min) + range.min;
+        
+        // Round to 2 decimal places
+        return Math.round(value * 100) / 100;
+    }
+
     // Generate item for a specific user
     async generateItemForUser(user) {
         try {
@@ -121,6 +138,9 @@ class ItemGenerationService {
             // Generate item name and description
             const itemName = this.generateItemName(selectedRarity, selectedCategory);
             const itemDescription = this.generateItemDescription(selectedRarity, selectedCategory, itemName);
+            
+            // Generate value based on rarity
+            const itemValue = this.generateItemValue(selectedRarity);
 
             // Create the item
             const item = await Item.create({
@@ -129,6 +149,7 @@ class ItemGenerationService {
                 category_id: selectedCategory.category_id,
                 rarity_id: selectedRarity.rarity_id,
                 is_tradeable: true,
+                value: itemValue,
                 metadata_uri: `generated_item_${Date.now()}`
             });
 
@@ -227,9 +248,9 @@ class ItemGenerationService {
     startItemGeneration() {
         console.log('🎮 Starting item generation service...');
 
-        // Run every 1 minute: '* * * * *'
-        // For testing, you might want to use '*/10 * * * * *' (every 10 seconds)
-        cron.schedule('* * * * *', async () => {
+        // Run every 5 minutes: '*/5 * * * *'
+        // Other options: '* * * * *' (every 1 minute), '*/10 * * * *' (every 10 minutes)
+        cron.schedule('*/5 * * * *', async () => {
             const timestamp = new Date().toLocaleTimeString();
             console.log(`\n⏰ [${timestamp}] Running scheduled item generation...`);
             const results = await this.generateItemsForAllUsers();
@@ -240,8 +261,8 @@ class ItemGenerationService {
             console.log('─'.repeat(50));
         });
 
-        console.log('✅ Item generation service started. Items will be generated every minute.');
-        console.log('🔍 Watch for generation logs above every minute...\n');
+        console.log('✅ Item generation service started. Items will be generated every 5 minutes.');
+        console.log('🔍 Watch for generation logs above every 5 minutes...\n');
     }
 
     // Stop the cron job (useful for testing or graceful shutdown)

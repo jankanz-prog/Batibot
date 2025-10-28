@@ -221,6 +221,18 @@ export const inventoryAPI = {
         });
     },
 
+    // Permanently delete item (completely remove from database)
+    permanentlyDeleteItem: async (item_id: number, token: string): Promise<ApiResponse<void>> => {
+        return apiCall<void>('/auth/inventory/permanent-delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ item_id }),
+        });
+    },
+
     // Get deleted items
     getDeletedItems: async (token: string): Promise<ApiResponse<InventoryItem[]>> => {
         return apiCall<InventoryItem[]>('/auth/inventory/deleted', {

@@ -203,11 +203,47 @@ const getDeletedItems = async (req, res) => {
     }
 };
 
+// Permanently delete item (completely remove from database)
+const permanentlyDeleteItem = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { item_id } = req.body;
+
+        const inventoryItem = await Inventory.findOne({ 
+            where: { user_id: userId, item_id, is_deleted: true } 
+        });
+        
+        if (!inventoryItem) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Item not found in deleted items' 
+            });
+        }
+
+        // Permanently delete from database
+        await inventoryItem.destroy();
+        
+        console.log(`🗑️ Permanently deleted item ${item_id} from user ${userId}'s inventory`);
+        
+        res.status(200).json({ 
+            success: true, 
+            message: 'Item permanently deleted from database'
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error', 
+            error: error.message 
+        });
+    }
+};
+
 module.exports = { 
     getInventory, 
     addItemToInventory, 
     removeItemFromInventory, 
     softDeleteItem, 
     restoreItem, 
-    getDeletedItems 
+    getDeletedItems,
+    permanentlyDeleteItem
 };
