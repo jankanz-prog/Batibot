@@ -12,6 +12,7 @@ const rarityRoutes = require('./routes/rarityRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const tradeRoutes = require('./routes/tradeRoutes');
 const ItemGenerationService = require('./services/itemGenerationService');
 const { autoSeedDatabase } = require('./config/autoSeeder');
 require('./models'); // This will load all models and associations
@@ -231,6 +232,7 @@ app.use('/api/rarities', rarityRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api', notificationRoutes);
+app.use('/api/trades', tradeRoutes);
 
 // Serve uploaded files statically (for viewing)
 app.use('/uploads', express.static('uploads'));
@@ -297,7 +299,7 @@ sequelize.authenticate()
             console.log('   → This shows database stats and recent items');
             console.log('');
             console.log('🎯 Item Generation Status:');
-            console.log('   → Automatic generation: ENABLED (every minute)');
+            console.log('   → Automatic generation: ENABLED (every 5 minutes)');
             console.log('   → Manual generation: POST /api/auth/generate-items (admin only)');
             console.log('   → Max inventory per user: 30 items');
             console.log('');

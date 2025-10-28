@@ -1,5 +1,5 @@
 // components/InventoryPage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { inventoryAPI } from '../services/itemsAPI';
 import type { InventoryItem } from '../types/items';
@@ -11,6 +11,15 @@ export const InventoryPage: React.FC = () => {
     const [showDeleted, setShowDeleted] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    
+    // Multi-select state
+    const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+    
+    // Filter state
+    const [searchTerm, setSearchTerm] = useState('');
+    const [rarityFilter, setRarityFilter] = useState<string>('all');
+    const [sortBy, setSortBy] = useState<'name' | 'rarity' | 'quantity' | 'date'>('date');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
     useEffect(() => {
         loadInventory();
@@ -79,6 +88,92 @@ export const InventoryPage: React.FC = () => {
         }
     };
 
+    const handlePermanentDelete = async (item_id: number, item_name: string) => {
+        if (!token) return;
+
+        // Confirm before permanent deletion
+        const confirmed = window.confirm(
+            `⚠️ PERMANENT DELETE\n\nAre you sure you want to permanently delete "${item_name}"?\n\nThis action cannot be undone and the item will be completely removed from the database.`
+        );
+
+        if (!confirmed) return;
+
+        try {
+            const response = await inventoryAPI.permanentlyDeleteItem(item_id, token);
+            if (response.success) {
+                await loadInventory(); // Reload both lists
+            } else {
+                setError(response.message || 'Failed to permanently delete item');
+                setTimeout(() => setError(null), 5000);
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to permanently delete item');
+            setTimeout(() => setError(null), 5000);
+        }
+    };
+
+    // Multi-select handlers
+    const handleSelectItem = (item_id: number) => {
+        const newSelected = new Set(selectedItems);
+        if (newSelected.has(item_id)) {
+            newSelected.delete(item_id);
+        } else {
+            newSelected.add(item_id);
+        }
+        setSelectedItems(newSelected);
+    };
+
+    const handleSelectAll = () => {
+        const currentList = showDeleted ? deletedItems : inventory;
+        if (selectedItems.size === currentList.length) {
+            setSelectedItems(new Set());
+        } else {
+            setSelectedItems(new Set(currentList.map(item => item.Item!.item_id)));
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (!token || selectedItems.size === 0) return;
+
+        const confirmed = window.confirm(
+            `Are you sure you want to delete ${selectedItems.size} item(s)? They will be moved to deleted items.`
+        );
+
+        if (!confirmed) return;
+
+        try {
+            for (const item_id of selectedItems) {
+                await inventoryAPI.softDeleteItem(item_id, token);
+            }
+            setSelectedItems(new Set());
+            await loadInventory();
+        } catch (err) {
+            setError('Failed to delete some items');
+            setTimeout(() => setError(null), 5000);
+        }
+    };
+
+    const handleBulkPermanentDelete = async () => {
+        if (!token || selectedItems.size === 0) return;
+
+        const confirmed = window.confirm(
+            `⚠️ PERMANENT DELETE\n\nAre you sure you want to PERMANENTLY delete ${selectedItems.size} item(s)?\n\nThis action cannot be undone!`
+        );
+
+        if (!confirmed) return;
+
+        try {
+            for (const item_id of selectedItems) {
+                await inventoryAPI.permanentlyDeleteItem(item_id, token);
+            }
+            setSelectedItems(new Set());
+            await loadInventory();
+        } catch (err) {
+            setError('Failed to permanently delete some items');
+            setTimeout(() => setError(null), 5000);
+        }
+    };
+
     const getTotalItems = () => {
         return inventory.reduce((total, item) => total + item.quantity, 0);
     };
@@ -91,6 +186,65 @@ export const InventoryPage: React.FC = () => {
         if (!rarityName) return 'rarity-common';
         return `rarity-${rarityName.toLowerCase()}`;
     };
+
+    // Filtered and sorted items
+    const filteredAndSortedItems = useMemo(() => {
+        const currentList = showDeleted ? deletedItems : inventory;
+        
+        let filtered = currentList.filter(invItem => {
+            const item = invItem.Item;
+            if (!item) return false;
+
+            // Search filter
+            if (searchTerm && !item.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+                return false;
+            }
+
+            // Rarity filter
+            if (rarityFilter !== 'all' && item.rarity?.name.toLowerCase() !== rarityFilter.toLowerCase()) {
+                return false;
+            }
+
+            return true;
+        });
+
+        // Sort
+        filtered.sort((a, b) => {
+            let comparison = 0;
+            
+            switch (sortBy) {
+                case 'name':
+                    comparison = (a.Item?.name || '').localeCompare(b.Item?.name || '');
+                    break;
+                case 'rarity':
+                    const rarityOrder: any = { common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5, mythical: 6 };
+                    comparison = (rarityOrder[a.Item?.rarity?.name.toLowerCase() || 'common'] || 0) - 
+                                (rarityOrder[b.Item?.rarity?.name.toLowerCase() || 'common'] || 0);
+                    break;
+                case 'quantity':
+                    comparison = a.quantity - b.quantity;
+                    break;
+                case 'date':
+                    comparison = new Date(a.acquired_at).getTime() - new Date(b.acquired_at).getTime();
+                    break;
+            }
+
+            return sortOrder === 'asc' ? comparison : -comparison;
+        });
+
+        return filtered;
+    }, [inventory, deletedItems, showDeleted, searchTerm, rarityFilter, sortBy, sortOrder]);
+
+    // Get unique rarities for filter
+    const availableRarities = useMemo(() => {
+        const rarities = new Set<string>();
+        [...inventory, ...deletedItems].forEach(invItem => {
+            if (invItem.Item?.rarity?.name) {
+                rarities.add(invItem.Item.rarity.name);
+            }
+        });
+        return Array.from(rarities).sort();
+    }, [inventory, deletedItems]);
 
     if (loading) {
         return (
@@ -105,14 +259,28 @@ export const InventoryPage: React.FC = () => {
     return (
         <div className="inventory-page">
             <div className="inventory-header">
-                <h1 className="items-title">My Inventory</h1>
+                <div className="header-left">
+                    <h1 className="items-title">My Inventory</h1>
+                    <p className="items-subtitle">🎮 Manage your collected items</p>
+                </div>
                 <div className="header-actions">
                     <button 
-                        onClick={() => setShowDeleted(!showDeleted)} 
-                        className="admin-btn"
-                        style={{ marginRight: '10px' }}
+                        onClick={() => {
+                            setShowDeleted(!showDeleted);
+                            setSelectedItems(new Set());
+                        }} 
+                        className={`filter-btn ${!showDeleted ? 'active' : ''}`}
                     >
-                        {showDeleted ? '📦 Active Items' : '🗑️ Deleted Items'} ({showDeleted ? inventory.length : deletedItems.length})
+                        📦 Active ({inventory.length})
+                    </button>
+                    <button 
+                        onClick={() => {
+                            setShowDeleted(!showDeleted);
+                            setSelectedItems(new Set());
+                        }} 
+                        className={`filter-btn ${showDeleted ? 'active' : ''}`}
+                    >
+                        🗑️ Deleted ({deletedItems.length})
                     </button>
                     <button onClick={loadInventory} className="admin-btn">
                         🔄 Refresh
@@ -127,108 +295,157 @@ export const InventoryPage: React.FC = () => {
             )}
 
             <div className="inventory-stats">
-                <div className="stat-card">
+                <div className="stat-card compact">
                     <div className="stat-number">{getTotalItems()}</div>
-                    <div className="stat-label">Total Items</div>
+                    <div className="stat-label">Total</div>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card compact">
                     <div className="stat-number">{getUniqueItems()}</div>
-                    <div className="stat-label">Unique Items</div>
+                    <div className="stat-label">Unique</div>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card compact">
                     <div className="stat-number">{30 - getUniqueItems()}</div>
                     <div className="stat-label">Free Slots</div>
                 </div>
             </div>
 
-            {showDeleted ? (
-                // Deleted Items View
-                deletedItems.length === 0 ? (
-                    <div className="empty-state">
-                        <h3>No deleted items</h3>
-                        <p>Items you delete will appear here and can be restored.</p>
+            <div className="inventory-content-wrapper">
+                {/* Filters Sidebar */}
+                <aside className="filters-sidebar">
+                    <div className="filters-header">
+                        <h3>🔍 Filters</h3>
                     </div>
-                ) : (
-                    <div className="inventory-grid">
-                        {deletedItems.map((inventoryItem) => {
-                            const item = inventoryItem.Item;
-                            if (!item) return null;
 
-                            return (
-                                <div 
-                                    key={inventoryItem.inventory_id} 
-                                    className={`inventory-item ${getRarityClass(item.rarity?.name)} deleted-item`}
-                                    style={{ '--rarity-color': item.rarity?.color } as React.CSSProperties}
-                                >
-                                    <div className="quantity-badge">×{inventoryItem.quantity}</div>
-                                    
-                                    <div className="item-header">
-                                        <div className="item-info">
-                                            <h3 className="item-name">{item.name}</h3>
-                                            <div className="item-category">
-                                                {item.category?.icon && <span>{item.category.icon}</span>}
-                                                {item.category?.name}
-                                            </div>
-                                        </div>
-                                        {item.image_url ? (
-                                            <img 
-                                                src={item.image_url} 
-                                                alt={item.name}
-                                                className="item-image"
-                                            />
-                                        ) : (
-                                            <div className="item-image">
-                                                No Image
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {item.description && (
-                                        <p className="item-description">{item.description}</p>
-                                    )}
-
-                                    <div className="item-footer">
-                                        <div className="item-rarity" style={{ color: item.rarity?.color }}>
-                                            <div 
-                                                className="rarity-dot"
-                                                style={{ background: item.rarity?.color }}
-                                            ></div>
-                                            {item.rarity?.name}
-                                        </div>
-                                    </div>
-
-                                    <div className="item-actions">
-                                        <button 
-                                            onClick={() => handleRestore(item.item_id)}
-                                            className="restore-btn"
-                                        >
-                                            ↩️ Restore
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                    {/* Search */}
+                    <div className="filter-group">
+                        <label>Search Items</label>
+                        <input
+                            type="text"
+                            placeholder="Search by name..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="filter-input"
+                        />
                     </div>
-                )
+
+                    {/* Rarity Filter */}
+                    <div className="filter-group">
+                        <label>Rarity</label>
+                        <select 
+                            value={rarityFilter} 
+                            onChange={(e) => setRarityFilter(e.target.value)}
+                            className="filter-select"
+                        >
+                            <option value="all">All Rarities</option>
+                            {availableRarities.map(rarity => (
+                                <option key={rarity} value={rarity}>{rarity}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Sort By */}
+                    <div className="filter-group">
+                        <label>Sort By</label>
+                        <select 
+                            value={sortBy} 
+                            onChange={(e) => setSortBy(e.target.value as any)}
+                            className="filter-select"
+                        >
+                            <option value="date">Date Acquired</option>
+                            <option value="name">Name</option>
+                            <option value="rarity">Rarity</option>
+                            <option value="quantity">Quantity</option>
+                        </select>
+                    </div>
+
+                    {/* Sort Order */}
+                    <div className="filter-group">
+                        <label>Order</label>
+                        <select 
+                            value={sortOrder} 
+                            onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+                            className="filter-select"
+                        >
+                            <option value="desc">Descending</option>
+                            <option value="asc">Ascending</option>
+                        </select>
+                    </div>
+
+                    <div className="filter-divider"></div>
+
+                    {/* Multi-select actions */}
+                    <div className="filter-group">
+                        <label>Multi-Select ({selectedItems.size})</label>
+                        <button 
+                            onClick={handleSelectAll}
+                            className="filter-action-btn"
+                        >
+                            {selectedItems.size === (showDeleted ? deletedItems : inventory).length ? '☐' : '☑'} Select All
+                        </button>
+                        
+                        {selectedItems.size > 0 && (
+                            <>
+                                {!showDeleted ? (
+                                    <button 
+                                        onClick={handleBulkDelete}
+                                        className="filter-action-btn danger"
+                                        style={{ marginTop: '0.5rem' }}
+                                    >
+                                        🗑️ Delete Selected
+                                    </button>
+                                ) : (
+                                    <button 
+                                        onClick={handleBulkPermanentDelete}
+                                        className="filter-action-btn danger"
+                                        style={{ marginTop: '0.5rem' }}
+                                    >
+                                        🗑️ Permanent Delete
+                                    </button>
+                                )}
+                            </>
+                        )}
+                    </div>
+
+                    <div className="filter-info">
+                        <small>💡 Showing {filteredAndSortedItems.length} of {(showDeleted ? deletedItems : inventory).length} items</small>
+                    </div>
+                </aside>
+
+                {/* Main Content */}
+                <div className="inventory-main-content">
+
+            {filteredAndSortedItems.length === 0 ? (
+                <div className="empty-state">
+                    <h3>{showDeleted ? 'No deleted items' : 'No items found'}</h3>
+                    <p>{showDeleted ? 'Items you delete will appear here.' : 'Try adjusting your filters or acquire new items.'}</p>
+                </div>
             ) : (
-                // Active Inventory View
-                inventory.length === 0 ? (
-                    <div className="empty-state">
-                        <h3>Your inventory is empty</h3>
-                        <p>Items you acquire will appear here.</p>
-                    </div>
-                ) : (
-                    <div className="inventory-grid">
-                        {inventory.map((inventoryItem) => {
+                <div className="inventory-grid">
+                    {filteredAndSortedItems.map((inventoryItem) => {
                             const item = inventoryItem.Item;
                             if (!item) return null;
 
+                            const isSelected = selectedItems.has(item.item_id);
+                            
                             return (
                                 <div 
                                     key={inventoryItem.inventory_id} 
-                                    className={`inventory-item ${getRarityClass(item.rarity?.name)}`}
+                                    className={`inventory-item ${getRarityClass(item.rarity?.name)} ${showDeleted ? 'deleted-item' : ''} ${isSelected ? 'selected' : ''}`}
                                     style={{ '--rarity-color': item.rarity?.color } as React.CSSProperties}
                                 >
+                                    <div 
+                                        className="item-checkbox"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleSelectItem(item.item_id);
+                                        }}
+                                    >
+                                        <input 
+                                            type="checkbox" 
+                                            checked={isSelected}
+                                            onChange={() => {}}
+                                        />
+                                    </div>
                                     <div className="quantity-badge">×{inventoryItem.quantity}</div>
                                     
                                     <div className="item-header">
@@ -264,32 +481,47 @@ export const InventoryPage: React.FC = () => {
                                             ></div>
                                             {item.rarity?.name}
                                         </div>
-                                        
-                                        {item.is_tradeable ? (
-                                            <span className="tradeable-badge">Tradeable</span>
-                                        ) : (
-                                            <span className="non-tradeable-badge">Bound</span>
-                                        )}
-                                    </div>
-
-                                    <div className="item-meta">
-                                        <small>Acquired: {new Date(inventoryItem.acquired_at).toLocaleDateString()}</small>
                                     </div>
 
                                     <div className="item-actions">
-                                        <button 
-                                            onClick={() => handleSoftDelete(item.item_id)}
-                                            className="delete-btn"
-                                        >
-                                            🗑️ Delete
-                                        </button>
+                                        {showDeleted ? (
+                                            <>
+                                                <button 
+                                                    onClick={() => handleRestore(item.item_id)}
+                                                    className="restore-btn"
+                                                >
+                                                    ↩️ Restore
+                                                </button>
+                                                <button 
+                                                    onClick={() => handlePermanentDelete(item.item_id, item.name)}
+                                                    className="permanent-delete-btn"
+                                                    style={{ marginLeft: '8px' }}
+                                                >
+                                                    🗑️ Delete Forever
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                {item.is_tradeable && (
+                                                    <span className="tradeable-badge">Tradeable</span>
+                                                )}
+                                                <button 
+                                                    onClick={() => handleSoftDelete(item.item_id)}
+                                                    className="delete-btn"
+                                                >
+                                                    🗑️ Delete
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             );
                         })}
                     </div>
                 )
-            )}
+            }
+                </div>
+            </div>
         </div>
     );
 };

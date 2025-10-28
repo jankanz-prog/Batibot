@@ -104,6 +104,18 @@ class ChatService {
                 case 'typing_stop':
                     this.handleTypingStatus(ws, messageData, false);
                     break;
+                case 'trade_request':
+                    this.handleTradeRequest(ws, messageData);
+                    break;
+                case 'trade_update':
+                    this.handleTradeUpdate(ws, messageData);
+                    break;
+                case 'trade_accept':
+                    this.handleTradeAccept(ws, messageData);
+                    break;
+                case 'trade_cancel':
+                    this.handleTradeCancel(ws, messageData);
+                    break;
                 case 'heartbeat':
                     ws.send(JSON.stringify({ type: 'heartbeat_response' }));
                     break;
@@ -345,6 +357,98 @@ class ChatService {
         }
         console.log(`📬 User ${userId} offline, notification saved to database`);
         return false;
+    }
+
+    // Handle trade request (real-time trade invitation)
+    handleTradeRequest(ws, messageData) {
+        const { receiver_id, trade_session_id } = messageData;
+        
+        console.log(`🤝 Trade request from ${ws.username} (${ws.userId}) to user ${receiver_id}`);
+        
+        const receiverWs = this.clients.get(parseInt(receiver_id));
+        
+        if (receiverWs && receiverWs.readyState === WebSocket.OPEN) {
+            receiverWs.send(JSON.stringify({
+                type: 'trade_request',
+                data: {
+                    sender_id: ws.userId,
+                    sender_username: ws.username,
+                    trade_session_id
+                }
+            }));
+            
+            // Confirm to sender
+            ws.send(JSON.stringify({
+                type: 'trade_request_sent',
+                data: { trade_session_id, receiver_online: true }
+            }));
+            
+            console.log(`✅ Trade request sent to user ${receiver_id} (online)`);
+        } else {
+            ws.send(JSON.stringify({
+                type: 'trade_request_sent',
+                data: { trade_session_id, receiver_online: false }
+            }));
+            console.log(`📬 User ${receiver_id} offline, trade will be async`);
+        }
+    }
+
+    // Handle trade update (when users modify their offered items in real-time)
+    handleTradeUpdate(ws, messageData) {
+        const { receiver_id, trade_session_id, offered_items } = messageData;
+        
+        console.log(`🔄 Trade update from ${ws.username} in session ${trade_session_id}`);
+        
+        const receiverWs = this.clients.get(parseInt(receiver_id));
+        
+        if (receiverWs && receiverWs.readyState === WebSocket.OPEN) {
+            receiverWs.send(JSON.stringify({
+                type: 'trade_update',
+                data: {
+                    sender_id: ws.userId,
+                    trade_session_id,
+                    offered_items
+                }
+            }));
+        }
+    }
+
+    // Handle trade accept (both users ready to complete)
+    handleTradeAccept(ws, messageData) {
+        const { receiver_id, trade_session_id } = messageData;
+        
+        console.log(`✅ Trade accept from ${ws.username} in session ${trade_session_id}`);
+        
+        const receiverWs = this.clients.get(parseInt(receiver_id));
+        
+        if (receiverWs && receiverWs.readyState === WebSocket.OPEN) {
+            receiverWs.send(JSON.stringify({
+                type: 'trade_accepted',
+                data: {
+                    sender_id: ws.userId,
+                    trade_session_id
+                }
+            }));
+        }
+    }
+
+    // Handle trade cancel
+    handleTradeCancel(ws, messageData) {
+        const { receiver_id, trade_session_id } = messageData;
+        
+        console.log(`❌ Trade cancelled by ${ws.username} in session ${trade_session_id}`);
+        
+        const receiverWs = this.clients.get(parseInt(receiver_id));
+        
+        if (receiverWs && receiverWs.readyState === WebSocket.OPEN) {
+            receiverWs.send(JSON.stringify({
+                type: 'trade_cancelled',
+                data: {
+                    sender_id: ws.userId,
+                    trade_session_id
+                }
+            }));
+        }
     }
 
     // Heartbeat to keep connections alive

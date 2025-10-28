@@ -4,7 +4,7 @@ const {login, register, createAdmin, changePassword, authenticateToken, requireA
 const { getProfile } = require("../controllers/profileController");
 const { uploadProfilePicture, deleteProfilePicture } = require('../controllers/profileUploadController');
 const upload = require('../middleware/upload');
-const { getInventory, addItemToInventory, removeItemFromInventory, softDeleteItem, restoreItem, getDeletedItems } = require("../controllers/inventoryController");
+const { getInventory, addItemToInventory, removeItemFromInventory, softDeleteItem, restoreItem, getDeletedItems, permanentlyDeleteItem } = require("../controllers/inventoryController");
 const { generateItemsManually } = require('../controllers/itemGenerationController');
 const { createNote, getAllNotes, getNoteById, updateNote, deleteNote, toggleFavorite} = require('../controllers/notesController');
 const {createItem, getAllItems, getItemById, updateItem, deleteItem} = require('../controllers/itemController');
@@ -32,6 +32,7 @@ router.post('/inventory', authenticateToken, addItemToInventory);
 router.delete('/inventory', authenticateToken, removeItemFromInventory);
 router.post('/inventory/soft-delete', authenticateToken, softDeleteItem);
 router.post('/inventory/restore', authenticateToken, restoreItem);
+router.post('/inventory/permanent-delete', authenticateToken, permanentlyDeleteItem);
 router.get('/inventory/deleted', authenticateToken, getDeletedItems);
 
 // Notes routes

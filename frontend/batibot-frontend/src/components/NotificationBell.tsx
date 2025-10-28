@@ -38,6 +38,8 @@ export const NotificationBell: React.FC = () => {
             navigate('/chat', { state: { userId: parseInt(notification.related_id) } });
         } else if (notification.type === 'ItemDrop') {
             navigate('/inventory');
+        } else if (notification.type === 'Trade') {
+            navigate('/trade-offers');
         }
 
         setIsOpen(false);

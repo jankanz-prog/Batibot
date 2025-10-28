@@ -106,6 +106,25 @@ class WebSocketService {
             case 'online_users_list':
                 this.emit('onlineUsersList', data.data);
                 break;
+            case 'trade_request':
+                console.log('🤝 WebSocket received trade_request:', data.data);
+                this.emit('tradeRequest', data.data);
+                break;
+            case 'trade_request_sent':
+                this.emit('tradeRequestSent', data.data);
+                break;
+            case 'trade_update':
+                console.log('🔄 WebSocket received trade_update:', data.data);
+                this.emit('tradeUpdate', data.data);
+                break;
+            case 'trade_accepted':
+                console.log('✅ WebSocket received trade_accepted:', data.data);
+                this.emit('tradeAccepted', data.data);
+                break;
+            case 'trade_cancelled':
+                console.log('❌ WebSocket received trade_cancelled:', data.data);
+                this.emit('tradeCancelled', data.data);
+                break;
             case 'error':
                 this.emit('error', data);
                 break;

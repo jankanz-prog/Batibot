@@ -1,13 +1,19 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { useAuth } from "../context/AuthContext"
+import { inventoryAPI } from "../services/itemsAPI"
+import { tradeAPI } from "../services/tradeAPI"
 
-interface InventoryItem {
+interface TradeInventoryItem {
     id: string
+    inventory_id: number
+    item_id: number
     name: string
-    rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'
+    rarity: string
+    category: string
     image?: string
     quantity: number
     value: number
@@ -16,33 +22,70 @@ interface InventoryItem {
 interface TradeOfferModalProps {
     isOpen: boolean
     onClose: () => void
+    targetUserId: number
     targetUser: string
+    targetItemId: number
     targetItem: string
     targetItemValue: number
 }
 
-// Mock inventory data
-const mockInventory: InventoryItem[] = [
-    { id: '1', name: 'Ancient Sword', rarity: 'legendary', quantity: 1, value: 25.00 },
-    { id: '2', name: 'Magic Shield', rarity: 'epic', quantity: 2, value: 15.50 },
-    { id: '3', name: 'Steel Helmet', rarity: 'rare', quantity: 1, value: 8.00 },
-    { id: '4', name: 'Iron Boots', rarity: 'uncommon', quantity: 3, value: 4.25 },
-    { id: '5', name: 'Wooden Staff', rarity: 'common', quantity: 5, value: 2.10 },
-    { id: '6', name: 'Crystal Orb', rarity: 'epic', quantity: 1, value: 18.25 },
-    { id: '7', name: 'Silver Ring', rarity: 'rare', quantity: 2, value: 12.00 },
-    { id: '8', name: 'Basic Potion', rarity: 'common', quantity: 10, value: 1.50 }
-]
 
 export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
     isOpen,
     onClose,
+    targetUserId,
     targetUser,
+    targetItemId,
     targetItem,
     targetItemValue
 }) => {
     const navigate = useNavigate()
-    const [selectedItems, setSelectedItems] = useState<InventoryItem[]>([])
+    const { token } = useAuth()
+    const [selectedItems, setSelectedItems] = useState<TradeInventoryItem[]>([])
     const [showInventory, setShowInventory] = useState(false)
+    const [userInventory, setUserInventory] = useState<TradeInventoryItem[]>([])
+    const [isLoading, setIsLoading] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    // Load user's inventory when modal opens
+    useEffect(() => {
+        if (isOpen && token) {
+            loadInventory()
+        }
+    }, [isOpen, token])
+
+    const loadInventory = async () => {
+        if (!token) return
+        
+        try {
+            setIsLoading(true)
+            const response = await inventoryAPI.getInventory(token)
+            
+            if (response.success && response.data) {
+                // Transform API data to match component interface
+                const formattedInventory: TradeInventoryItem[] = response.data
+                    .filter(inv => inv.Item?.is_tradeable !== false) // Only tradeable items
+                    .map(inv => ({
+                        id: inv.inventory_id.toString(),
+                        inventory_id: inv.inventory_id,
+                        item_id: inv.item_id,
+                        name: inv.Item?.name || 'Unknown Item',
+                        rarity: inv.Item?.rarity?.name?.toLowerCase() || 'common',
+                        category: inv.Item?.category?.name?.toLowerCase() || 'misc',
+                        quantity: inv.quantity,
+                        value: Number(inv.Item?.value || 0),
+                        image: inv.Item?.image_url
+                    }))
+                
+                setUserInventory(formattedInventory)
+                console.log('✅ Loaded inventory:', formattedInventory.length, 'items')
+            }
+        } catch (error: any) {
+            console.error('Failed to load inventory:', error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
 
     if (!isOpen) return null
 
@@ -57,7 +100,7 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
         }
     }
 
-    const handleItemSelect = (item: InventoryItem) => {
+    const handleItemSelect = (item: TradeInventoryItem) => {
         const existingItem = selectedItems.find(selected => selected.id === item.id)
         if (existingItem) {
             // Remove item if already selected
@@ -69,17 +112,49 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
     }
 
     const getTotalOfferedValue = () => {
-        return selectedItems.reduce((total, item) => total + (item.value * item.quantity), 0)
+        return selectedItems.reduce((total, item) => total + (Number(item.value) * item.quantity), 0)
     }
 
-    const handleConfirmOffer = () => {
-        const totalValue = getTotalOfferedValue()
-        // TODO: Implement actual trade offer logic
-        alert(`Trade offer sent to ${targetUser} for ${targetItem}!\nOffered items: ${selectedItems.map(item => item.name).join(', ')}\nTotal value: $${totalValue.toFixed(2)}`)
-        setSelectedItems([])
-        onClose()
-        // Navigate to trade offers page to see the new offer
-        navigate('/trade-offers')
+    const handleConfirmOffer = async () => {
+        if (!token || selectedItems.length === 0) return
+
+        try {
+            setIsSubmitting(true)
+
+            // Prepare trade data
+            const tradeData = {
+                receiver_id: targetUserId,
+                sender_items: selectedItems.map(item => ({
+                    item_id: item.item_id,
+                    quantity: item.quantity
+                })),
+                receiver_items: [{
+                    item_id: targetItemId,
+                    quantity: 1
+                }]
+            }
+
+            console.log('📤 Creating trade offer:', tradeData)
+            const response = await tradeAPI.createTradeOffer(tradeData, token)
+
+            if (response.success) {
+                const totalValue = getTotalOfferedValue()
+                alert(`✅ Trade offer sent successfully!\n\nSent to: ${targetUser}\nFor: ${targetItem}\nYour offer: ${selectedItems.map(item => item.name).join(', ')}\nTotal value: $${totalValue.toFixed(2)}\n\nCheck the Trade Offers page to see your offer!`)
+                
+                setSelectedItems([])
+                onClose()
+                
+                // Navigate to trade offers page to see the new offer
+                navigate('/trade-offers')
+            } else {
+                throw new Error(response.message || 'Failed to create trade offer')
+            }
+        } catch (error: any) {
+            console.error('❌ Error creating trade offer:', error)
+            alert(`Failed to create trade offer:\n${error.message || 'Unknown error'}`)
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     const openInventory = () => {
@@ -126,7 +201,7 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
                             </div>
                             <div className="info-item">
                                 <span className="label">Item Value:</span>
-                                <span className="value">${targetItemValue.toFixed(2)}</span>
+                                <span className="value">${Number(targetItemValue || 0).toFixed(2)}</span>
                             </div>
                             <div className="info-item">
                                 <span className="label">Sniping Prevention:</span>
@@ -162,7 +237,7 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
                                         </div>
                                         <div className="item-info">
                                             <p className="item-name">{item.name}</p>
-                                            <p className="item-value">${item.value.toFixed(2)}</p>
+                                            <p className="item-value">${Number(item.value || 0).toFixed(2)}</p>
                                             <button 
                                                 className="remove-item"
                                                 onClick={() => handleItemSelect(item)}
@@ -181,7 +256,7 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
                         <div className="value-comparison">
                             <div className="value-item">
                                 <span className="label">Target Value:</span>
-                                <span className="value">${targetItemValue.toFixed(2)}</span>
+                                <span className="value">${Number(targetItemValue || 0).toFixed(2)}</span>
                             </div>
                             <div className="value-item">
                                 <span className="label">Your Offer:</span>
@@ -190,10 +265,10 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
                             <div className="value-item difference">
                                 <span className="label">Difference:</span>
                                 <span 
-                                    className={`value ${getTotalOfferedValue() >= targetItemValue ? 'positive' : 'negative'}`}
+                                    className={`value ${getTotalOfferedValue() >= Number(targetItemValue || 0) ? 'positive' : 'negative'}`}
                                 >
-                                    {getTotalOfferedValue() >= targetItemValue ? '+' : ''}
-                                    ${(getTotalOfferedValue() - targetItemValue).toFixed(2)}
+                                    {getTotalOfferedValue() >= Number(targetItemValue || 0) ? '+' : ''}
+                                    ${(getTotalOfferedValue() - Number(targetItemValue || 0)).toFixed(2)}
                                 </span>
                             </div>
                         </div>
@@ -207,9 +282,9 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
                         <button 
                             className="confirm-button" 
                             onClick={handleConfirmOffer}
-                            disabled={selectedItems.length === 0}
+                            disabled={selectedItems.length === 0 || isSubmitting}
                         >
-                            Confirm Offer
+                            {isSubmitting ? 'Sending Offer...' : 'Confirm Offer'}
                         </button>
                     </div>
                 </div>
@@ -225,7 +300,16 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
                         </div>
                         
                         <div className="inventory-grid">
-                            {mockInventory.map((item) => {
+                            {isLoading ? (
+                                <div className="loading-inventory">
+                                    <p>Loading your inventory...</p>
+                                </div>
+                            ) : userInventory.length === 0 ? (
+                                <div className="empty-inventory">
+                                    <p>Your inventory is empty</p>
+                                </div>
+                            ) : (
+                                userInventory.map((item) => {
                                 const isSelected = selectedItems.some(selected => selected.id === item.id)
                                 return (
                                     <div 
@@ -245,12 +329,13 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
                                         <div className="item-info">
                                             <p className="item-name">{item.name}</p>
                                             <p className="item-rarity">{item.rarity}</p>
-                                            <p className="item-value">${item.value.toFixed(2)}</p>
+                                            <p className="item-value">${Number(item.value || 0).toFixed(2)}</p>
                                         </div>
                                         {isSelected && <div className="selected-indicator">✓</div>}
                                     </div>
                                 )
-                            })}
+                            })
+                            )}
                         </div>
                         
                         <div className="inventory-actions">
