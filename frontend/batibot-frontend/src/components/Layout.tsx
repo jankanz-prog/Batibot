@@ -1,6 +1,7 @@
 import type React from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
+import { NotificationBell } from "./NotificationBell"
 
 interface LayoutProps {
     children: React.ReactNode
@@ -99,6 +100,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                                     Profile
                                 </button>
                             </nav>
+
+                            <NotificationBell />
 
                             <div className="header-profile-picture">
                                 {user.profile_picture ? (

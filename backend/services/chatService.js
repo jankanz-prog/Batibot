@@ -3,6 +3,7 @@ const WebSocket = require('ws');
 const jwt = require('jsonwebtoken');
 const ChatMessage = require('../models/chatMessageModel');
 const User = require('../models/userModel');
+const { createNotification } = require('../controllers/notificationController');
 
 class ChatService {
     constructor() {
@@ -13,8 +14,7 @@ class ChatService {
     // Initialize WebSocket server
     initialize(server) {
         this.wss = new WebSocket.Server({ 
-            server,
-            path: '/chat'
+            noServer: true
         });
 
         this.wss.on('connection', this.handleConnection.bind(this));
@@ -102,6 +102,18 @@ class ChatService {
                     break;
                 case 'typing_stop':
                     this.handleTypingStatus(ws, messageData, false);
+                    break;
+                case 'trade_request':
+                    this.handleTradeRequest(ws, messageData);
+                    break;
+                case 'trade_update':
+                    this.handleTradeUpdate(ws, messageData);
+                    break;
+                case 'trade_accept':
+                    this.handleTradeAccept(ws, messageData);
+                    break;
+                case 'trade_cancel':
+                    this.handleTradeCancel(ws, messageData);
                     break;
                 case 'heartbeat':
                     ws.send(JSON.stringify({ type: 'heartbeat_response' }));
@@ -200,6 +212,20 @@ class ChatService {
                 type: 'message_sent',
                 data: completeMessage
             }));
+
+            // Create notification for the receiver
+            try {
+                await createNotification({
+                    user_id: parseInt(receiver_id),
+                    type: 'Chat',
+                    title: `💬 New message from ${ws.username}`,
+                    message: content || 'Sent an attachment',
+                    related_id: ws.userId.toString() // Store sender's user_id for navigation
+                });
+                console.log(`🔔 Chat notification created for user ${receiver_id}`);
+            } catch (notifError) {
+                console.error('Failed to create chat notification:', notifError);
+            }
 
             console.log(`💌 DM from ${ws.username} to user ${receiver_id} ${receiverWs ? 'delivered' : 'queued (user offline)'}`);
         }
@@ -315,6 +341,113 @@ class ChatService {
             type: 'online_users_list',
             data: onlineUsers
         }));
+    }
+
+    // Send notification to specific user
+    sendNotificationToUser(userId, notificationData) {
+        const ws = this.clients.get(userId);
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                type: 'new_notification',
+                data: notificationData
+            }));
+            console.log(`🔔 Notification sent to user ${userId} via chat WebSocket`);
+            return true;
+        }
+        console.log(`📬 User ${userId} offline, notification saved to database`);
+        return false;
+    }
+
+    // Handle trade request (real-time trade invitation)
+    handleTradeRequest(ws, messageData) {
+        const { receiver_id, trade_session_id } = messageData;
+        
+        console.log(`🤝 Trade request from ${ws.username} (${ws.userId}) to user ${receiver_id}`);
+        
+        const receiverWs = this.clients.get(parseInt(receiver_id));
+        
+        if (receiverWs && receiverWs.readyState === WebSocket.OPEN) {
+            receiverWs.send(JSON.stringify({
+                type: 'trade_request',
+                data: {
+                    sender_id: ws.userId,
+                    sender_username: ws.username,
+                    trade_session_id
+                }
+            }));
+            
+            // Confirm to sender
+            ws.send(JSON.stringify({
+                type: 'trade_request_sent',
+                data: { trade_session_id, receiver_online: true }
+            }));
+            
+            console.log(`✅ Trade request sent to user ${receiver_id} (online)`);
+        } else {
+            ws.send(JSON.stringify({
+                type: 'trade_request_sent',
+                data: { trade_session_id, receiver_online: false }
+            }));
+            console.log(`📬 User ${receiver_id} offline, trade will be async`);
+        }
+    }
+
+    // Handle trade update (when users modify their offered items in real-time)
+    handleTradeUpdate(ws, messageData) {
+        const { receiver_id, trade_session_id, offered_items } = messageData;
+        
+        console.log(`🔄 Trade update from ${ws.username} in session ${trade_session_id}`);
+        
+        const receiverWs = this.clients.get(parseInt(receiver_id));
+        
+        if (receiverWs && receiverWs.readyState === WebSocket.OPEN) {
+            receiverWs.send(JSON.stringify({
+                type: 'trade_update',
+                data: {
+                    sender_id: ws.userId,
+                    trade_session_id,
+                    offered_items
+                }
+            }));
+        }
+    }
+
+    // Handle trade accept (both users ready to complete)
+    handleTradeAccept(ws, messageData) {
+        const { receiver_id, trade_session_id } = messageData;
+        
+        console.log(`✅ Trade accept from ${ws.username} in session ${trade_session_id}`);
+        
+        const receiverWs = this.clients.get(parseInt(receiver_id));
+        
+        if (receiverWs && receiverWs.readyState === WebSocket.OPEN) {
+            receiverWs.send(JSON.stringify({
+                type: 'trade_accepted',
+                data: {
+                    sender_id: ws.userId,
+                    trade_session_id
+                }
+            }));
+        }
+    }
+
+    // Handle trade cancel
+    handleTradeCancel(ws, messageData) {
+        const { receiver_id, trade_session_id } = messageData;
+        
+        console.log(`❌ Trade cancelled by ${ws.username} in session ${trade_session_id}`);
+        
+        const receiverWs = this.clients.get(parseInt(receiver_id));
+        
+        if (receiverWs && receiverWs.readyState === WebSocket.OPEN) {
+            receiverWs.send(JSON.stringify({
+                type: 'trade_cancelled',
+                data: {
+                    sender_id: ws.userId,
+                    trade_session_id
+                }
+            }));
+        }
     }
 
     // Heartbeat to keep connections alive

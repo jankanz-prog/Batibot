@@ -11,6 +11,8 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const rarityRoutes = require('./routes/rarityRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const tradeRoutes = require('./routes/tradeRoutes');
 const ItemGenerationService = require('./services/itemGenerationService');
 const { autoSeedDatabase } = require('./config/autoSeeder');
 require('./models'); // This will load all models and associations
@@ -229,6 +231,8 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/rarities', rarityRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/uploads', uploadRoutes);
+app.use('/api', notificationRoutes);
+app.use('/api/trades', tradeRoutes);
 
 // Serve uploaded files statically (for viewing)
 app.use('/uploads', express.static('uploads'));
@@ -295,7 +299,7 @@ sequelize.authenticate()
             console.log('   → This shows database stats and recent items');
             console.log('');
             console.log('🎯 Item Generation Status:');
-            console.log('   → Automatic generation: ENABLED (every minute)');
+            console.log('   → Automatic generation: ENABLED (every 5 minutes)');
             console.log('   → Manual generation: POST /api/auth/generate-items (admin only)');
             console.log('   → Max inventory per user: 30 items');
             console.log('');
@@ -311,10 +315,51 @@ sequelize.authenticate()
             console.log('═'.repeat(50));
         });
 
-        // Initialize WebSocket chat service
+        // Initialize WebSocket services
         const chatService = require('./services/chatService');
+        const notificationService = require('./services/notificationService');
+        const liveTradeService = require('./services/liveTradeService');
+
+        // Initialize all services with noServer mode
         chatService.initialize(server);
+        notificationService.initialize(server);
+        liveTradeService.initialize(server);
+
+        // Start heartbeat for chat
         chatService.startHeartbeat();
+
+        // Connect services for integration
+        liveTradeService.setNotificationService(notificationService);
+        notificationService.setChatService(chatService);
+
+        // Handle WebSocket upgrade requests and route to correct service
+        server.on('upgrade', (request, socket, head) => {
+            const pathname = new URL(request.url, `http://${request.headers.host}`).pathname;
+
+            console.log(`🔌 WebSocket upgrade request for path: ${pathname}`);
+
+            if (pathname === '/chat') {
+                chatService.wss.handleUpgrade(request, socket, head, (ws) => {
+                    chatService.wss.emit('connection', ws, request);
+                });
+            } else if (pathname === '/notifications') {
+                notificationService.wss.handleUpgrade(request, socket, head, (ws) => {
+                    notificationService.wss.emit('connection', ws, request);
+                });
+            } else if (pathname === '/live-trade') {
+                liveTradeService.wss.handleUpgrade(request, socket, head, (ws) => {
+                    liveTradeService.wss.emit('connection', ws, request);
+                });
+            } else {
+                console.log(`❌ Unknown WebSocket path: ${pathname}`);
+                socket.destroy();
+            }
+        });
+
+        console.log('🔌 WebSocket services initialized:');
+        console.log('   → Chat: /chat');
+        console.log('   → Notifications: /notifications');
+        console.log('   → Live Trade: /live-trade');
     })
     .catch(err => {
         console.error('Database connection error:', err);

@@ -1,101 +1,66 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useAuth } from "../context/AuthContext"
+import { tradeAPI } from "../services/tradeAPI"
 
 interface TradeOfferItem {
-    id: string
+    item_id: number
     name: string
-    rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'
+    rarity: string
+    category: string
     value: number
     quantity: number
 }
 
 interface TradeOffer {
-    id: string
-    fromUser: string
-    toUser: string
-    targetItem: string
-    targetItemValue: number
-    offeredItems: TradeOfferItem[]
-    totalOfferedValue: number
-    status: 'pending' | 'accepted' | 'declined' | 'expired'
-    createdAt: string
-    expiresAt: string
+    trade_id: string
+    sender_id: number
+    sender: string
+    receiver_id: number
+    receiver: string
+    status: string
+    created_at: string
     type: 'sent' | 'received'
+    is_live_trade: boolean
+    sender_items: TradeOfferItem[]
+    receiver_items: TradeOfferItem[]
 }
 
-// Mock trade offers data
-const mockTradeOffers: TradeOffer[] = [
-    {
-        id: '1',
-        fromUser: 'CurrentUser',
-        toUser: 'FERRAN',
-        targetItem: 'Specialized Killstreaks',
-        targetItemValue: 45.50,
-        offeredItems: [
-            { id: '1', name: 'Ancient Sword', rarity: 'legendary', value: 25.00, quantity: 1 },
-            { id: '2', name: 'Magic Shield', rarity: 'epic', value: 15.50, quantity: 1 },
-            { id: '3', name: 'Steel Helmet', rarity: 'rare', value: 8.00, quantity: 1 }
-        ],
-        totalOfferedValue: 48.50,
-        status: 'pending',
-        createdAt: '2024-01-15 14:30:00',
-        expiresAt: '2024-01-16 14:30:00',
-        type: 'sent'
-    },
-    {
-        id: '2',
-        fromUser: 'shadowworld92',
-        toUser: 'CurrentUser',
-        targetItem: 'Blue And Green Gem',
-        targetItemValue: 32.75,
-        offeredItems: [
-            { id: '4', name: 'Crystal Orb', rarity: 'epic', value: 18.25, quantity: 1 },
-            { id: '5', name: 'Silver Ring', rarity: 'rare', value: 12.00, quantity: 2 }
-        ],
-        totalOfferedValue: 42.25,
-        status: 'pending',
-        createdAt: '2024-01-15 16:45:00',
-        expiresAt: '2024-01-16 16:45:00',
-        type: 'received'
-    },
-    {
-        id: '3',
-        fromUser: 'CurrentUser',
-        toUser: 'Tricksie',
-        targetItem: 'STUFF',
-        targetItemValue: 125.00,
-        offeredItems: [
-            { id: '6', name: 'Ancient Sword', rarity: 'legendary', value: 25.00, quantity: 2 },
-            { id: '7', name: 'Crystal Orb', rarity: 'epic', value: 18.25, quantity: 3 },
-            { id: '8', name: 'Magic Shield', rarity: 'epic', value: 15.50, quantity: 1 }
-        ],
-        totalOfferedValue: 120.25,
-        status: 'accepted',
-        createdAt: '2024-01-14 10:20:00',
-        expiresAt: '2024-01-15 10:20:00',
-        type: 'sent'
-    },
-    {
-        id: '4',
-        fromUser: 'Frend',
-        toUser: 'CurrentUser',
-        targetItem: 'Festi ughhhhh',
-        targetItemValue: 8.50,
-        offeredItems: [
-            { id: '9', name: 'Basic Potion', rarity: 'common', value: 2.25, quantity: 5 }
-        ],
-        totalOfferedValue: 11.25,
-        status: 'declined',
-        createdAt: '2024-01-14 09:15:00',
-        expiresAt: '2024-01-15 09:15:00',
-        type: 'received'
-    }
-]
-
 export const TradeOffersPage: React.FC = () => {
+    const { token } = useAuth()
     const [selectedFilter, setSelectedFilter] = useState<'all' | 'sent' | 'received' | 'pending' | 'completed'>('all')
+    const [tradeOffers, setTradeOffers] = useState<TradeOffer[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+
+    // Load trade offers
+    useEffect(() => {
+        loadTradeOffers()
+    }, [token])
+
+    const loadTradeOffers = async () => {
+        if (!token) return
+        
+        try {
+            setIsLoading(true)
+            setError(null)
+            const response = await tradeAPI.getTradeOffers(token)
+            
+            if (response.success) {
+                setTradeOffers(response.data)
+                console.log('✅ Loaded trade offers:', response.data.length)
+            } else {
+                setError(response.message || 'Failed to load trade offers')
+            }
+        } catch (err: any) {
+            console.error('❌ Failed to load trade offers:', err)
+            setError(err.message || 'Failed to load trade offers')
+        } finally {
+            setIsLoading(false)
+        }
+    }
 
     const getRarityGradient = (rarity: string) => {
         switch (rarity) {
@@ -111,46 +76,81 @@ export const TradeOffersPage: React.FC = () => {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'pending': return '#ffc107'
-            case 'accepted': return '#28a745'
-            case 'declined': return '#dc3545'
+            case 'accepted': case 'completed': return '#28a745'
+            case 'declined': case 'rejected': return '#dc3545'
             case 'expired': return '#6c757d'
             default: return '#6c757d'
         }
     }
 
-    const getStatusText = (status: string) => {
-        switch (status) {
-            case 'pending': return 'Pending'
-            case 'accepted': return 'Accepted'
-            case 'declined': return 'Declined'
-            case 'expired': return 'Expired'
-            default: return 'Unknown'
-        }
-    }
-
-    const filteredOffers = mockTradeOffers.filter(offer => {
+    const filteredOffers = tradeOffers.filter(offer => {
         switch (selectedFilter) {
             case 'sent': return offer.type === 'sent'
             case 'received': return offer.type === 'received'
-            case 'pending': return offer.status === 'pending'
-            case 'completed': return offer.status === 'accepted' || offer.status === 'declined'
+            case 'pending': return offer.status === 'Pending'
+            case 'completed': return offer.status === 'Completed' || offer.status === 'Rejected'
             default: return true
         }
     })
 
-    const handleAcceptOffer = (offerId: string) => {
-        // TODO: Implement accept offer functionality
-        alert(`Accepting trade offer ${offerId}`)
+    const handleAcceptOffer = async (tradeId: string) => {
+        if (!token) return
+        
+        try {
+            const response = await tradeAPI.acceptTradeOffer(tradeId, token)
+            
+            if (response.success) {
+                console.log('✅ Trade accepted successfully')
+                // Reload trade offers
+                await loadTradeOffers()
+                alert('Trade completed successfully! Items have been exchanged.')
+            } else {
+                alert(`Failed to accept trade: ${response.message}`)
+            }
+        } catch (err: any) {
+            console.error('❌ Failed to accept trade:', err)
+            alert(`Error: ${err.message}`)
+        }
     }
 
-    const handleDeclineOffer = (offerId: string) => {
-        // TODO: Implement decline offer functionality
-        alert(`Declining trade offer ${offerId}`)
+    const handleDeclineOffer = async (tradeId: string) => {
+        if (!token) return
+        
+        try {
+            const response = await tradeAPI.rejectTradeOffer(tradeId, token)
+            
+            if (response.success) {
+                console.log('✅ Trade declined successfully')
+                // Reload trade offers
+                await loadTradeOffers()
+            } else {
+                alert(`Failed to decline trade: ${response.message}`)
+            }
+        } catch (err: any) {
+            console.error('❌ Failed to decline trade:', err)
+            alert(`Error: ${err.message}`)
+        }
     }
 
-    const handleCancelOffer = (offerId: string) => {
-        // TODO: Implement cancel offer functionality
-        alert(`Cancelling trade offer ${offerId}`)
+    const handleCancelOffer = async (tradeId: string) => {
+        if (!token) return
+        
+        if (!confirm('Are you sure you want to cancel this trade offer?')) return
+        
+        try {
+            const response = await tradeAPI.cancelTradeOffer(tradeId, token)
+            
+            if (response.success) {
+                console.log('✅ Trade cancelled successfully')
+                // Reload trade offers
+                await loadTradeOffers()
+            } else {
+                alert(`Failed to cancel trade: ${response.message}`)
+            }
+        } catch (err: any) {
+            console.error('❌ Failed to cancel trade:', err)
+            alert(`Error: ${err.message}`)
+        }
     }
 
     return (
@@ -160,58 +160,98 @@ export const TradeOffersPage: React.FC = () => {
                 <p>Manage your sent and received trade offers</p>
             </div>
 
-            <div className="trade-offers-filters">
-                <div className="filter-buttons">
-                    <button 
-                        className={`filter-btn ${selectedFilter === 'all' ? 'active' : ''}`}
-                        onClick={() => setSelectedFilter('all')}
-                    >
-                        All Offers
-                    </button>
-                    <button 
-                        className={`filter-btn ${selectedFilter === 'sent' ? 'active' : ''}`}
-                        onClick={() => setSelectedFilter('sent')}
-                    >
-                        Sent
-                    </button>
-                    <button 
-                        className={`filter-btn ${selectedFilter === 'received' ? 'active' : ''}`}
-                        onClick={() => setSelectedFilter('received')}
-                    >
-                        Received
-                    </button>
-                    <button 
-                        className={`filter-btn ${selectedFilter === 'pending' ? 'active' : ''}`}
-                        onClick={() => setSelectedFilter('pending')}
-                    >
-                        Pending
-                    </button>
-                    <button 
-                        className={`filter-btn ${selectedFilter === 'completed' ? 'active' : ''}`}
-                        onClick={() => setSelectedFilter('completed')}
-                    >
-                        Completed
-                    </button>
+            {isLoading && (
+                <div className="loading-state">
+                    <p>Loading trade offers...</p>
                 </div>
-            </div>
+            )}
 
-            <div className="trade-offers-list">
-                {filteredOffers.map((offer) => (
-                    <div key={offer.id} className="trade-offer-card">
+            {error && (
+                <div className="error-state">
+                    <p>❌ {error}</p>
+                    <button onClick={() => loadTradeOffers()}>Retry</button>
+                </div>
+            )}
+
+            {!isLoading && !error && (
+                <>
+                    <div className="trade-offers-filters">
+                        <div className="filter-buttons">
+                            <button 
+                                className={`filter-btn ${selectedFilter === 'all' ? 'active' : ''}`}
+                                onClick={() => setSelectedFilter('all')}
+                            >
+                                All Offers
+                            </button>
+                            <button 
+                                className={`filter-btn ${selectedFilter === 'sent' ? 'active' : ''}`}
+                                onClick={() => setSelectedFilter('sent')}
+                            >
+                                Sent
+                            </button>
+                            <button 
+                                className={`filter-btn ${selectedFilter === 'received' ? 'active' : ''}`}
+                                onClick={() => setSelectedFilter('received')}
+                            >
+                                Received
+                            </button>
+                            <button 
+                                className={`filter-btn ${selectedFilter === 'pending' ? 'active' : ''}`}
+                                onClick={() => setSelectedFilter('pending')}
+                            >
+                                Pending
+                            </button>
+                            <button 
+                                className={`filter-btn ${selectedFilter === 'completed' ? 'active' : ''}`}
+                                onClick={() => setSelectedFilter('completed')}
+                            >
+                                Completed
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="trade-offers-list">
+                {filteredOffers.map((offer) => {
+                    // For clarity: What you're giving vs what you're getting
+                    const youGiveItems = offer.type === 'sent' ? offer.sender_items : offer.receiver_items
+                    const youGetItems = offer.type === 'sent' ? offer.receiver_items : offer.sender_items
+                    const totalYouGiveValue = youGiveItems.reduce((sum: number, item: TradeOfferItem) => sum + (Number(item.value || 0) * item.quantity), 0)
+                    const totalYouGetValue = youGetItems.reduce((sum: number, item: TradeOfferItem) => sum + (Number(item.value || 0) * item.quantity), 0)
+                    
+                    // User-friendly labels
+                    const youGiveLabel = offer.type === 'sent' ? "You're Offering" : "They Want From You"
+                    const youGetLabel = offer.type === 'sent' ? "You Want" : "They're Offering You"
+                    const youGiveTooltip = offer.type === 'sent' 
+                        ? "Items you're offering in this trade"
+                        : `What ${offer.sender} wants from you`
+                    const youGetTooltip = offer.type === 'sent'
+                        ? `What you want from ${offer.receiver}`
+                        : `What ${offer.sender} is offering for your items`
+                    
+                    return (
+                    <div key={offer.trade_id} className="trade-offer-card">
                         <div className="offer-header">
                             <div className="offer-info">
                                 <h3 className="offer-title">
                                     {offer.type === 'sent' ? 'Sent to' : 'Received from'} {' '}
-                                    <span className="username">{offer.type === 'sent' ? offer.toUser : offer.fromUser}</span>
+                                    <span className="username">{offer.type === 'sent' ? offer.receiver : offer.sender}</span>
+                                    {offer.is_live_trade && (
+                                        <span className="live-trade-badge" title="Live Trade">⚡</span>
+                                    )}
                                 </h3>
                                 <div className="offer-meta">
-                                    <span className="offer-date">{offer.createdAt}</span>
+                                    <span className="offer-date">{new Date(offer.created_at).toLocaleString()}</span>
                                     <span 
                                         className="offer-status"
-                                        style={{ color: getStatusColor(offer.status) }}
+                                        style={{ color: getStatusColor(offer.status.toLowerCase()) }}
                                     >
-                                        {getStatusText(offer.status)}
+                                        {offer.status}
                                     </span>
+                                    {offer.is_live_trade ? (
+                                        <span className="trade-type-label live">Live Trade</span>
+                                    ) : (
+                                        <span className="trade-type-label offline">Offline Trade</span>
+                                    )}
                                 </div>
                             </div>
                             <div className="offer-type-badge">
@@ -220,27 +260,19 @@ export const TradeOffersPage: React.FC = () => {
                         </div>
 
                         <div className="offer-content">
-                            {/* Target Item */}
-                            <div className="target-section">
-                                <h4>Target Item</h4>
-                                <div className="target-item">
-                                    <div className="item-icon">🎯</div>
-                                    <div className="item-details">
-                                        <p className="item-name">{offer.targetItem}</p>
-                                        <p className="item-value">${offer.targetItemValue.toFixed(2)}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Offered Items */}
-                            <div className="offered-section">
-                                <h4>Offered Items (${offer.totalOfferedValue.toFixed(2)})</h4>
+                            {/* What You Get */}
+                            <div className="target-section you-get-section">
+                                <h4>
+                                    <span className="section-icon">📥</span>
+                                    {youGetLabel} (${totalYouGetValue.toFixed(2)})
+                                    <span className="info-tooltip" title={youGetTooltip}>ℹ️</span>
+                                </h4>
                                 <div className="offered-items-grid">
-                                    {offer.offeredItems.map((item) => (
-                                        <div key={item.id} className="offered-item">
+                                    {youGetItems.map((item: TradeOfferItem, idx: number) => (
+                                        <div key={`${item.item_id}-${idx}`} className="offered-item">
                                             <div 
                                                 className="item-header"
-                                                style={{ background: getRarityGradient(item.rarity) }}
+                                                style={{ background: getRarityGradient(item.rarity.toLowerCase()) }}
                                             >
                                                 <div className="item-icon">🎮</div>
                                                 {item.quantity > 1 && (
@@ -249,7 +281,37 @@ export const TradeOffersPage: React.FC = () => {
                                             </div>
                                             <div className="item-info">
                                                 <p className="item-name">{item.name}</p>
-                                                <p className="item-value">${item.value.toFixed(2)}</p>
+                                                <p className="item-category">{item.category}</p>
+                                                <p className="item-value">${Number(item.value || 0).toFixed(2)}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* What You Give */}
+                            <div className="offered-section you-give-section">
+                                <h4>
+                                    <span className="section-icon">📤</span>
+                                    {youGiveLabel} (${totalYouGiveValue.toFixed(2)})
+                                    <span className="info-tooltip" title={youGiveTooltip}>ℹ️</span>
+                                </h4>
+                                <div className="offered-items-grid">
+                                    {youGiveItems.map((item: TradeOfferItem, idx: number) => (
+                                        <div key={`${item.item_id}-${idx}`} className="offered-item">
+                                            <div 
+                                                className="item-header"
+                                                style={{ background: getRarityGradient(item.rarity.toLowerCase()) }}
+                                            >
+                                                <div className="item-icon">🎮</div>
+                                                {item.quantity > 1 && (
+                                                    <div className="item-quantity">{item.quantity}</div>
+                                                )}
+                                            </div>
+                                            <div className="item-info">
+                                                <p className="item-name">{item.name}</p>
+                                                <p className="item-category">{item.category}</p>
+                                                <p className="item-value">${Number(item.value || 0).toFixed(2)}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -259,38 +321,38 @@ export const TradeOffersPage: React.FC = () => {
                             {/* Value Comparison */}
                             <div className="value-comparison">
                                 <div className="value-item">
-                                    <span className="label">Target Value:</span>
-                                    <span className="value">${offer.targetItemValue.toFixed(2)}</span>
+                                    <span className="label">You Get:</span>
+                                    <span className="value">${totalYouGetValue.toFixed(2)}</span>
                                 </div>
                                 <div className="value-item">
-                                    <span className="label">Offered Value:</span>
-                                    <span className="value">${offer.totalOfferedValue.toFixed(2)}</span>
+                                    <span className="label">You Give:</span>
+                                    <span className="value">${totalYouGiveValue.toFixed(2)}</span>
                                 </div>
                                 <div className="value-item difference">
-                                    <span className="label">Difference:</span>
+                                    <span className="label">Net Gain:</span>
                                     <span 
-                                        className={`value ${offer.totalOfferedValue >= offer.targetItemValue ? 'positive' : 'negative'}`}
+                                        className={`value ${totalYouGetValue >= totalYouGiveValue ? 'positive' : 'negative'}`}
                                     >
-                                        {offer.totalOfferedValue >= offer.targetItemValue ? '+' : ''}
-                                        ${(offer.totalOfferedValue - offer.targetItemValue).toFixed(2)}
+                                        {totalYouGetValue >= totalYouGiveValue ? '+' : ''}
+                                        ${(totalYouGetValue - totalYouGiveValue).toFixed(2)}
                                     </span>
                                 </div>
                             </div>
 
                             {/* Action Buttons */}
-                            {offer.status === 'pending' && (
+                            {offer.status === 'Pending' && (
                                 <div className="offer-actions">
                                     {offer.type === 'received' ? (
                                         <>
                                             <button 
                                                 className="accept-btn"
-                                                onClick={() => handleAcceptOffer(offer.id)}
+                                                onClick={() => handleAcceptOffer(offer.trade_id)}
                                             >
                                                 Accept Offer
                                             </button>
                                             <button 
                                                 className="decline-btn"
-                                                onClick={() => handleDeclineOffer(offer.id)}
+                                                onClick={() => handleDeclineOffer(offer.trade_id)}
                                             >
                                                 Decline
                                             </button>
@@ -298,7 +360,7 @@ export const TradeOffersPage: React.FC = () => {
                                     ) : (
                                         <button 
                                             className="cancel-btn"
-                                            onClick={() => handleCancelOffer(offer.id)}
+                                            onClick={() => handleCancelOffer(offer.trade_id)}
                                         >
                                             Cancel Offer
                                         </button>
@@ -307,13 +369,16 @@ export const TradeOffersPage: React.FC = () => {
                             )}
                         </div>
                     </div>
-                ))}
+                    )
+                })}
             </div>
 
-            {filteredOffers.length === 0 && (
+            {filteredOffers.length === 0 && !isLoading && (
                 <div className="no-offers">
                     <p>No trade offers found for the selected filter.</p>
                 </div>
+            )}
+                </>
             )}
         </div>
     )

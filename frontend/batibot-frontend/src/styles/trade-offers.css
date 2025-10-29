@@ -114,6 +114,40 @@
     letter-spacing: 0.5px;
 }
 
+.live-trade-badge {
+    display: inline-block;
+    margin-left: 0.5rem;
+    font-size: 1.2rem;
+    animation: pulse 2s infinite;
+    cursor: help;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.trade-type-label {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.trade-type-label.live {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+.trade-type-label.offline {
+    background: rgba(108, 117, 125, 0.2);
+    color: var(--text-secondary);
+    border: 1px solid rgba(108, 117, 125, 0.3);
+}
+
 .offer-type-badge {
     font-size: 1.5rem;
     padding: 0.5rem;
@@ -125,16 +159,53 @@
     padding: 2rem;
 }
 
-/* Target Section */
-.target-section {
-    margin-bottom: 2rem;
-}
-
-.target-section h4 {
+/* Section Headers with Icons and Tooltips */
+.target-section h4,
+.offered-section h4 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     color: var(--text-primary);
     font-size: 1.1rem;
     font-weight: 600;
     margin: 0 0 1rem 0;
+}
+
+.section-icon {
+    font-size: 1.2rem;
+}
+
+.info-tooltip {
+    cursor: help;
+    font-size: 1rem;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+    margin-left: auto;
+}
+
+.info-tooltip:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+/* Visual distinction for sections */
+.you-get-section {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(32, 201, 151, 0.05) 100%);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.you-give-section {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+/* Target Section */
+.target-section {
+    margin-bottom: 2rem;
 }
 
 .target-item {
@@ -176,13 +247,6 @@
 /* Offered Section */
 .offered-section {
     margin-bottom: 2rem;
-}
-
-.offered-section h4 {
-    color: var(--text-primary);
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin: 0 0 1rem 0;
 }
 
 .offered-items-grid {

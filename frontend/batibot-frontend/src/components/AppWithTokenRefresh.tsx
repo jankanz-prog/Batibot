@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { useTokenRefresh } from "../hooks/useTokenRefresh"
 import { ProtectedRoute } from "./ProtectedRoute"
 import { Layout } from "./Layout"
+import { NotificationProvider } from "../context/NotificationContext"
+import { LiveTradeProvider } from "../context/LiveTradeContext"
 import { Dashboard } from "./Dashboard"
 import { ProfilePage } from "./ProfilePage"
 import { NotesPage } from "./NotesPage"
@@ -19,25 +21,29 @@ export const AppWithTokenRefresh: React.FC = () => {
     return (
         <Router>
             <ProtectedRoute>
-                <Layout>
-                    <Routes>
-                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/inventory" element={<InventoryPage />} />
-                        <Route path="/items" element={<ItemsPage />} />
-                        <Route path="/chat" element={<ChatPage />} />
-                        <Route path="/admin" element={
-                            <ProtectedRoute requireAdmin={true}>
-                                <AdminManagementPage />
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/trade" element={<TradePage />} />
-                        <Route path="/trade-offers" element={<TradeOffersPage />} />
-                        <Route path="/profile" element={<ProfilePage />} />
-                        <Route path="/notes" element={<NotesPage />} />
-                        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                    </Routes>
-                </Layout>
+                <NotificationProvider>
+                    <LiveTradeProvider>
+                        <Layout>
+                            <Routes>
+                                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                                <Route path="/dashboard" element={<Dashboard />} />
+                                <Route path="/inventory" element={<InventoryPage />} />
+                                <Route path="/items" element={<ItemsPage />} />
+                                <Route path="/chat" element={<ChatPage />} />
+                                <Route path="/admin" element={
+                                    <ProtectedRoute requireAdmin={true}>
+                                        <AdminManagementPage />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/trade" element={<TradePage />} />
+                                <Route path="/trade-offers" element={<TradeOffersPage />} />
+                                <Route path="/profile" element={<ProfilePage />} />
+                                <Route path="/notes" element={<NotesPage />} />
+                                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                            </Routes>
+                        </Layout>
+                    </LiveTradeProvider>
+                </NotificationProvider>
             </ProtectedRoute>
         </Router>
     )

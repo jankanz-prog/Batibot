@@ -22,6 +22,7 @@ export interface Item {
     rarity_id: number;
     image_url?: string;
     is_tradeable: boolean;
+    value?: number;
     metadata_uri?: string;
     created_at: string;
     rarity?: ItemRarity;

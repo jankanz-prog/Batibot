@@ -1,5 +1,6 @@
 // components/ChatPage.tsx - Main chat page component
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { ChatProvider, useChatContext } from '../context/ChatContext';
 import { useAuth } from '../context/AuthContext';
 import { UserList } from './chat/UserList';
@@ -10,6 +11,7 @@ import '../styles/chat.css';
 
 const ChatPageContent: React.FC = () => {
     const { user } = useAuth();
+    const location = useLocation();
     const {
         messages,
         conversations,
@@ -25,6 +27,17 @@ const ChatPageContent: React.FC = () => {
     } = useChatContext();
 
     const [selectedAttachment, setSelectedAttachment] = useState<AttachmentInfo | null>(null);
+
+    // Auto-open DM when coming from notification
+    useEffect(() => {
+        const state = location.state as { userId?: number };
+        if (state?.userId) {
+            console.log('📬 Opening DM with user:', state.userId);
+            setActiveChat(state.userId);
+            // Clear the state so it doesn't reopen on re-render
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state, setActiveChat]);
 
     const handleAttachmentClick = (attachment: AttachmentInfo) => {
         setSelectedAttachment(attachment);
@@ -72,7 +85,7 @@ const ChatPageContent: React.FC = () => {
                         <MessagesPanel
                             messages={messages}
                             activeChat={activeChat}
-                            currentUser={user}
+                            currentUser={user as any}
                             onSendMessage={sendMessage}
                             onFileUpload={uploadFile}
                             typingUsers={typingUsers}
