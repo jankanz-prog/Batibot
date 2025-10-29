@@ -14,8 +14,7 @@ class NotificationService {
     // Initialize WebSocket server for notifications
     initialize(server) {
         this.wss = new WebSocket.Server({ 
-            server,
-            path: '/notifications'
+            noServer: true
         });
 
         this.wss.on('connection', this.handleConnection.bind(this));
@@ -128,7 +127,11 @@ class NotificationService {
             console.log(`❌ User ${ws.username} (ID: ${ws.userId}) disconnected from notifications`);
             
             // Broadcast user offline status only if not connected to chat
-            if (this.chatService && !this.chatService.isUserConnected(ws.userId)) {
+            const isConnectedToChat = this.chatService && 
+                                     typeof this.chatService.isUserConnected === 'function' && 
+                                     this.chatService.isUserConnected(ws.userId);
+            
+            if (!isConnectedToChat) {
                 this.broadcastUserOnlineStatus(ws.userId, ws.username, false);
             }
         }
@@ -178,8 +181,8 @@ class NotificationService {
             }
         });
 
-        // Also notify chat service if available
-        if (this.chatService) {
+        // Also notify chat service if available and method exists
+        if (this.chatService && typeof this.chatService.handleExternalUserStatus === 'function') {
             this.chatService.handleExternalUserStatus(userId, username, isOnline);
         }
     }
@@ -202,9 +205,15 @@ class NotificationService {
         });
 
         // Add users connected to chat service
-        if (this.chatService) {
-            const chatUsers = this.chatService.getOnlineUsers();
-            chatUsers.forEach(user => onlineUsers.add(user.id));
+        if (this.chatService && typeof this.chatService.getOnlineUsers === 'function') {
+            try {
+                const chatUsers = this.chatService.getOnlineUsers();
+                if (Array.isArray(chatUsers)) {
+                    chatUsers.forEach(user => onlineUsers.add(user.id));
+                }
+            } catch (error) {
+                console.error('Error getting online users from chat service:', error);
+            }
         }
 
         return Array.from(onlineUsers);

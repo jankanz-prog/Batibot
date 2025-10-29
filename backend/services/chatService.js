@@ -14,8 +14,7 @@ class ChatService {
     // Initialize WebSocket server
     initialize(server) {
         this.wss = new WebSocket.Server({ 
-            server,
-            path: '/chat'
+            noServer: true
         });
 
         this.wss.on('connection', this.handleConnection.bind(this));

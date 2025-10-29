@@ -315,10 +315,51 @@ sequelize.authenticate()
             console.log('═'.repeat(50));
         });
 
-        // Initialize WebSocket chat service
+        // Initialize WebSocket services
         const chatService = require('./services/chatService');
+        const notificationService = require('./services/notificationService');
+        const liveTradeService = require('./services/liveTradeService');
+
+        // Initialize all services with noServer mode
         chatService.initialize(server);
+        notificationService.initialize(server);
+        liveTradeService.initialize(server);
+
+        // Start heartbeat for chat
         chatService.startHeartbeat();
+
+        // Connect services for integration
+        liveTradeService.setNotificationService(notificationService);
+        notificationService.setChatService(chatService);
+
+        // Handle WebSocket upgrade requests and route to correct service
+        server.on('upgrade', (request, socket, head) => {
+            const pathname = new URL(request.url, `http://${request.headers.host}`).pathname;
+
+            console.log(`🔌 WebSocket upgrade request for path: ${pathname}`);
+
+            if (pathname === '/chat') {
+                chatService.wss.handleUpgrade(request, socket, head, (ws) => {
+                    chatService.wss.emit('connection', ws, request);
+                });
+            } else if (pathname === '/notifications') {
+                notificationService.wss.handleUpgrade(request, socket, head, (ws) => {
+                    notificationService.wss.emit('connection', ws, request);
+                });
+            } else if (pathname === '/live-trade') {
+                liveTradeService.wss.handleUpgrade(request, socket, head, (ws) => {
+                    liveTradeService.wss.emit('connection', ws, request);
+                });
+            } else {
+                console.log(`❌ Unknown WebSocket path: ${pathname}`);
+                socket.destroy();
+            }
+        });
+
+        console.log('🔌 WebSocket services initialized:');
+        console.log('   → Chat: /chat');
+        console.log('   → Notifications: /notifications');
+        console.log('   → Live Trade: /live-trade');
     })
     .catch(err => {
         console.error('Database connection error:', err);
