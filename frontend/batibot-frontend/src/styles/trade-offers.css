@@ -114,6 +114,40 @@
     letter-spacing: 0.5px;
 }
 
+.live-trade-badge {
+    display: inline-block;
+    margin-left: 0.5rem;
+    font-size: 1.2rem;
+    animation: pulse 2s infinite;
+    cursor: help;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.trade-type-label {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.trade-type-label.live {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+.trade-type-label.offline {
+    background: rgba(108, 117, 125, 0.2);
+    color: var(--text-secondary);
+    border: 1px solid rgba(108, 117, 125, 0.3);
+}
+
 .offer-type-badge {
     font-size: 1.5rem;
     padding: 0.5rem;

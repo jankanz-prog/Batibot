@@ -118,6 +118,7 @@ const getUserTradeOffers = async (req, res) => {
             status: trade.status,
             created_at: trade.created_at,
             type: trade.sender_id === userId ? 'sent' : 'received',
+            is_live_trade: trade.is_live_trade || false,
             sender_items: trade.Items.filter(ti => ti.offered_by === 'Sender').map(ti => ({
                 item_id: ti.Item.item_id,
                 name: ti.Item.name,

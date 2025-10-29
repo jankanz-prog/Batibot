@@ -29,6 +29,11 @@ const Trade = sequelize.define('Trade', {
         allowNull: false,
         defaultValue: 'Pending'
     },
+    is_live_trade: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+    },
     created_at: {
         type: DataTypes.DATE,
         allowNull: false,

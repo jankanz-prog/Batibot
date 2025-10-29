@@ -1,8 +1,8 @@
-// context/NotificationContext.tsx - Notification context using chat WebSocket
+// context/NotificationContext.tsx - Notification context using notification WebSocket
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { notificationAPI } from '../services/notificationAPI';
-import { websocketService } from '../services/websocketService';
+import { notificationWebSocket } from '../services/notificationWebSocket';
 import type { Notification, NotificationContextType } from '../types/notification';
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -88,21 +88,21 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         if (user && token) {
             console.log('🌐 Initializing global WebSocket connection for user:', user.username);
             
-            // Connect to WebSocket globally
+            // Connect to notification WebSocket
             const initWebSocket = async () => {
                 try {
-                    await websocketService.connect(token);
-                    console.log('✅ Global WebSocket connected - user will stay online everywhere');
+                    await notificationWebSocket.connect(token);
+                    console.log('✅ Notification WebSocket connected');
                 } catch (error) {
-                    console.error('❌ Failed to connect WebSocket:', error);
+                    console.error('❌ Failed to connect to notification WebSocket:', error);
                 }
             };
             
             initWebSocket();
             
             // Set up notification listener
-            console.log('🔔 Registering WebSocket event listener for "newNotification"');
-            websocketService.on('newNotification', handleNewNotification);
+            console.log('🔔 Registering notification event listener');
+            notificationWebSocket.on('newNotification', handleNewNotification);
             console.log('✅ Notification listener registered successfully');
 
             // Load initial notifications
@@ -110,9 +110,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
             loadUnreadCount();
 
             return () => {
-                console.log('🧹 Cleaning up global WebSocket connection');
-                websocketService.off('newNotification', handleNewNotification);
-                websocketService.disconnect();
+                console.log('🧹 Cleaning up notification WebSocket connection');
+                notificationWebSocket.off('newNotification', handleNewNotification);
+                notificationWebSocket.disconnect();
             };
         }
     }, [user, token, handleNewNotification, loadNotifications, loadUnreadCount]);

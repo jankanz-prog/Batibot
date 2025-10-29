@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
 import { tradeAPI } from "../services/tradeAPI"
 import { TradeOfferModal } from "./TradeOfferModal"
+import { liveTradeWS } from "../services/liveTradeWebSocket"
 
 interface MarketplaceItem {
     inventory_id: string
@@ -88,8 +89,15 @@ export const TradePage: React.FC = () => {
     }
 
     const handleLiveTrade = (item: MarketplaceItem) => {
-        // TODO: Implement live trading feature (real-time WebSocket trading)
-        alert(`⚡ Live Trade with ${item.seller}\n\nThis feature enables real-time trading!\n\nComing soon... For now, use "Offer Trade" to send an offline trade offer.`)
+        // Check if live trade WebSocket is connected
+        if (!liveTradeWS.isConnected()) {
+            alert('❌ Live trade service is not connected. Please refresh the page.')
+            return
+        }
+
+        // Send live trade invite (backend will check if user is online)
+        liveTradeWS.sendTradeInvite(item.seller_id, item.seller)
+        alert(`✅ Live trade request sent to ${item.seller}!\n\nWaiting for them to accept...`)
     }
 
     const closeTradeModal = () => {

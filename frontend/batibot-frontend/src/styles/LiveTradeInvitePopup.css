@@ -1,0 +1,96 @@
+/* styles/LiveTradeInvitePopup.css */
+
+.live-trade-invite-popup {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 320px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    border: 2px solid #667eea;
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+    animation: slideIn 0.3s ease-out;
+    z-index: 9999;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.invite-popup-header {
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px 10px 0 0;
+    color: white;
+}
+
+.invite-popup-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.invite-popup-body {
+    padding: 1.5rem;
+}
+
+.invite-popup-body p {
+    margin: 0 0 1.5rem 0;
+    font-size: 1rem;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.invite-popup-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.invite-accept-btn,
+.invite-decline-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.invite-accept-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.invite-accept-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.invite-decline-btn {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+}
+
+.invite-decline-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .live-trade-invite-popup {
+        bottom: 1rem;
+        right: 1rem;
+        left: 1rem;
+        width: auto;
+    }
+}

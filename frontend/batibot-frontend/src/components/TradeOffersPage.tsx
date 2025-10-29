@@ -23,6 +23,7 @@ interface TradeOffer {
     status: string
     created_at: string
     type: 'sent' | 'received'
+    is_live_trade: boolean
     sender_items: TradeOfferItem[]
     receiver_items: TradeOfferItem[]
 }
@@ -234,6 +235,9 @@ export const TradeOffersPage: React.FC = () => {
                                 <h3 className="offer-title">
                                     {offer.type === 'sent' ? 'Sent to' : 'Received from'} {' '}
                                     <span className="username">{offer.type === 'sent' ? offer.receiver : offer.sender}</span>
+                                    {offer.is_live_trade && (
+                                        <span className="live-trade-badge" title="Live Trade">⚡</span>
+                                    )}
                                 </h3>
                                 <div className="offer-meta">
                                     <span className="offer-date">{new Date(offer.created_at).toLocaleString()}</span>
@@ -243,6 +247,11 @@ export const TradeOffersPage: React.FC = () => {
                                     >
                                         {offer.status}
                                     </span>
+                                    {offer.is_live_trade ? (
+                                        <span className="trade-type-label live">Live Trade</span>
+                                    ) : (
+                                        <span className="trade-type-label offline">Offline Trade</span>
+                                    )}
                                 </div>
                             </div>
                             <div className="offer-type-badge">
