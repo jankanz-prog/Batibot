@@ -12,6 +12,11 @@ const Note = require('./noteModel');
 const ChatMessage = require('./chatMessageModel');
 const ItemRarity = require('./itemRarityModel');
 const ItemCategory = require('./itemCategoryModel');
+const Badge = require('./badgeModel');
+const Achievement = require('./achievementModel');
+const Rank = require('./rankModel');
+const UserBadge = require('./userBadgeModel');
+const UserAchievement = require('./userAchievementModel');
 
 // User Inventory associations
 Inventory.belongsTo(User, { foreignKey: 'user_id' });
@@ -65,8 +70,24 @@ Profile.belongsTo(User, { foreignKey: 'user_id', as: 'User' });
 User.hasMany(Note, { foreignKey: 'user_id', as: 'Notes' });
 Note.belongsTo(User, { foreignKey: 'user_id', as: 'User' });
 
+// Badge Associations
+User.belongsToMany(Badge, { through: UserBadge, foreignKey: 'user_id', as: 'Badges' });
+Badge.belongsToMany(User, { through: UserBadge, foreignKey: 'badge_id', as: 'Users' });
+UserBadge.belongsTo(User, { foreignKey: 'user_id', as: 'User' });
+UserBadge.belongsTo(Badge, { foreignKey: 'badge_id', as: 'Badge' });
+
+// Achievement Associations
+User.belongsToMany(Achievement, { through: UserAchievement, foreignKey: 'user_id', as: 'Achievements' });
+Achievement.belongsToMany(User, { through: UserAchievement, foreignKey: 'achievement_id', as: 'Users' });
+UserAchievement.belongsTo(User, { foreignKey: 'user_id', as: 'User' });
+UserAchievement.belongsTo(Achievement, { foreignKey: 'achievement_id', as: 'Achievement' });
+
+// Rank Associations
+Profile.belongsTo(Rank, { foreignKey: 'current_rank_id', as: 'CurrentRank' });
+Rank.hasMany(Profile, { foreignKey: 'current_rank_id', as: 'Profiles' });
 
 module.exports = {
     User, Inventory, Item, ItemRarity, ItemCategory, ChatMessage,
-    Trade, TradeItem, Wallet, TrustScore, Notification, Profile, Note
+    Trade, TradeItem, Wallet, TrustScore, Notification, Profile, Note,
+    Badge, Achievement, Rank, UserBadge, UserAchievement
 };

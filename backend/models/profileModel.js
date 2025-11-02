@@ -49,6 +49,29 @@ const Profile = sequelize.define('Profile', {
     last_login: {
         type: DataTypes.DATE,
         allowNull: true
+    },
+    xp: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    current_rank_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'ranks',
+            key: 'rank_id'
+        }
+    },
+    consecutive_login_days: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    total_login_days: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
     }
 }, {
     tableName: 'profiles',

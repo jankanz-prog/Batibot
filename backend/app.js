@@ -13,6 +13,7 @@ const chatRoutes = require('./routes/chatRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const tradeRoutes = require('./routes/tradeRoutes');
+const progressRoutes = require('./routes/progressRoutes');
 const ItemGenerationService = require('./services/itemGenerationService');
 const { autoSeedDatabase } = require('./config/autoSeeder');
 require('./models'); // This will load all models and associations
@@ -233,6 +234,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api', notificationRoutes);
 app.use('/api/trades', tradeRoutes);
+app.use('/api', progressRoutes);
 
 // Serve uploaded files statically (for viewing)
 app.use('/uploads', express.static('uploads'));

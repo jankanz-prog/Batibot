@@ -3,18 +3,24 @@
 
 const ItemRarity = require('../models/itemRarityModel');
 const ItemCategory = require('../models/itemCategoryModel');
+const { Badge, Achievement, Rank } = require('../models');
+const { seedProgressData } = require('../seeders/seedProgressData');
 
 async function autoSeedDatabase() {
     try {
         // Check if tables are empty
-        const [rarityCount, categoryCount] = await Promise.all([
+        const [rarityCount, categoryCount, badgeCount, achievementCount, rankCount] = await Promise.all([
             ItemRarity.count(),
-            ItemCategory.count()
+            ItemCategory.count(),
+            Badge.count(),
+            Achievement.count(),
+            Rank.count()
         ]);
 
-        // If both tables have data, skip seeding
-        if (rarityCount > 0 && categoryCount > 0) {
-            console.log('✅ Database already seeded (Rarities: %d, Categories: %d)', rarityCount, categoryCount);
+        // If all tables have data, skip seeding
+        if (rarityCount > 0 && categoryCount > 0 && badgeCount > 0 && achievementCount > 0 && rankCount > 0) {
+            console.log('✅ Database already seeded (Rarities: %d, Categories: %d, Badges: %d, Achievements: %d, Ranks: %d)', 
+                rarityCount, categoryCount, badgeCount, achievementCount, rankCount);
             return;
         }
 
@@ -52,13 +58,25 @@ async function autoSeedDatabase() {
             console.log('   ✅ Created %d categories', categories.length);
         }
 
+        // Seed progress system if empty
+        if (badgeCount === 0 || achievementCount === 0 || rankCount === 0) {
+            console.log('   🏅 Seeding progress system (badges, achievements, ranks)...');
+            await seedProgressData();
+            console.log('   ✅ Progress system seeded');
+        }
+
         // Show final counts
-        const [finalRarities, finalCategories] = await Promise.all([
+        const [finalRarities, finalCategories, finalBadges, finalAchievements, finalRanks] = await Promise.all([
             ItemRarity.count(),
-            ItemCategory.count()
+            ItemCategory.count(),
+            Badge.count(),
+            Achievement.count(),
+            Rank.count()
         ]);
 
-        console.log('🎉 Auto-seeding complete! (Rarities: %d, Categories: %d)', finalRarities, finalCategories);
+        console.log('🎉 Auto-seeding complete!');
+        console.log('   📊 Items: Rarities: %d, Categories: %d', finalRarities, finalCategories);
+        console.log('   🎮 Progress: Badges: %d, Achievements: %d, Ranks: %d', finalBadges, finalAchievements, finalRanks);
 
     } catch (error) {
         console.error('❌ Auto-seeding error:', error.message);

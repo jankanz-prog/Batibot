@@ -480,6 +480,15 @@ const acceptTradeOffer = async (req, res) => {
 
         console.log(`✅ Trade ${trade_id} completed successfully`);
 
+        // Auto-award trade achievements (async, don't wait)
+        const progressService = require('../services/progressService');
+        progressService.onTradeComplete(trade.sender_id).catch(err => 
+            console.error('Error awarding trade achievements to sender:', err)
+        );
+        progressService.onTradeComplete(trade.receiver_id).catch(err => 
+            console.error('Error awarding trade achievements to receiver:', err)
+        );
+
         res.json({
             success: true,
             message: 'Trade completed successfully'

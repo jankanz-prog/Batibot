@@ -337,12 +337,39 @@
     font-size: 1.5rem;
     width: 40px;
     height: 40px;
+}
+
+.badge-icon-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 8px;
     background: var(--bg-secondary);
     flex-shrink: 0;
+}
+
+.achievement-progress {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 0.2rem 0;
+}
+
+.achievement-progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+}
+
+.achievement-progress-bar .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+    transition: width 0.3s ease;
 }
 
 .badge-info-small h4 {
@@ -584,6 +611,12 @@
     font-size: 3rem;
     width: 80px;
     height: 80px;
+}
+
+.badge-modal-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
     display: flex;
     align-items: center;
     justify-content: center;
