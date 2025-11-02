@@ -176,6 +176,19 @@ class ItemGenerationService {
                 console.error('Failed to create item drop notification:', notifError.message);
             }
 
+            // Auto-award item collection achievements
+            try {
+                const progressService = require('./progressService');
+                await progressService.onItemCollect(user.id);
+                
+                // Check if it's a rare item for rare item achievements
+                if (selectedRarity.name !== 'common') {
+                    await progressService.onRareItemDrop(user.id, selectedRarity.name);
+                }
+            } catch (progressError) {
+                console.error('Failed to award item achievements:', progressError.message);
+            }
+
             return {
                 item,
                 rarity: selectedRarity,

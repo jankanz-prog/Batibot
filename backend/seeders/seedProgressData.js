@@ -4,7 +4,7 @@ const { Badge, Achievement, Rank } = require('../models');
 const badges = [
     // Progress & Activity
     { name: 'First Steps', description: 'Logged in for the first time', icon: '/images/badges/first-steps.png', category: 'progress', rarity: 'common', requirement_type: 'first_login', requirement_value: 1 },
-    { name: 'Collector', description: 'Collected your first 10 items', icon: '/images/badges/collector.png', category: 'progress', rarity: 'common', requirement_type: 'collect_items', requirement_value: 10 },
+    { name: 'Collector', description: 'Received your first 10 items', icon: '/images/badges/collector.png', category: 'progress', rarity: 'common', requirement_type: 'collect_items', requirement_value: 10 },
     { name: 'Veteran', description: 'Logged in for 30 consecutive days', icon: '/images/badges/veteran.png', category: 'activity', rarity: 'epic', requirement_type: 'consecutive_logins', requirement_value: 30 },
     { name: 'Trader', description: 'Completed your first trade', icon: '/images/badges/trader.png', category: 'progress', rarity: 'common', requirement_type: 'complete_trade', requirement_value: 1 },
     { name: 'Entrepreneur', description: 'Completed 10 successful trades', icon: '/images/badges/entrepreneur.png', category: 'progress', rarity: 'rare', requirement_type: 'complete_trades', requirement_value: 10 },
@@ -13,7 +13,7 @@ const badges = [
     // Item & Rarity
     { name: 'Common Collector', description: 'Own at least 10 common items', icon: '/images/badges/common-collector.png', category: 'item', rarity: 'common', requirement_type: 'own_common_items', requirement_value: 10 },
     { name: 'Epic Hunter', description: 'Own at least 5 epic items', icon: '/images/badges/epic-hunter.png', category: 'rarity', rarity: 'epic', requirement_type: 'own_epic_items', requirement_value: 5 },
-    { name: 'Legendary Finder', description: 'Obtain your first legendary item', icon: '/images/badges/legendary-finder.png', category: 'rarity', rarity: 'legendary', requirement_type: 'own_legendary_items', requirement_value: 1 },
+    { name: 'Legendary Finder', description: 'Receive your first legendary item', icon: '/images/badges/legendary-finder.png', category: 'rarity', rarity: 'legendary', requirement_type: 'own_legendary_items', requirement_value: 1 },
     { name: 'Treasure Hoarder', description: 'Have 50+ total items', icon: '/images/badges/treasure-hoarder.png', category: 'item', rarity: 'rare', requirement_type: 'total_items', requirement_value: 50 },
     { name: 'Diversity Badge', description: 'Own at least one item from every category', icon: '/images/badges/diversity-badge.png', category: 'item', rarity: 'epic', requirement_type: 'all_categories', requirement_value: 1 },
     
@@ -31,12 +31,12 @@ const achievements = [
     { name: 'Merchant Lord', description: 'Complete 500 trades', icon: '/images/achievements/merchant-lord.png', category: 'trading', tier: 4, requirement_type: 'complete_trades', requirement_value: 500, xp_reward: 5000 },
     
     // Item Collection
-    { name: 'Item Hoarder I', description: 'Collect 10 items', icon: '/images/achievements/item-hoarder-i.png', category: 'collection', tier: 1, requirement_type: 'collect_items', requirement_value: 10, xp_reward: 30 },
-    { name: 'Item Hoarder II', description: 'Collect 50 items', icon: '/images/achievements/item-hoarder-ii.png', category: 'collection', tier: 2, requirement_type: 'collect_items', requirement_value: 50, xp_reward: 150 },
-    { name: 'Item Hoarder III', description: 'Collect 100 items', icon: '/images/achievements/item-hoarder-iii.png', category: 'collection', tier: 3, requirement_type: 'collect_items', requirement_value: 100, xp_reward: 500 },
-    { name: 'Rare Hunter I', description: 'Collect 1 rare+ item', icon: '/images/achievements/rare-hunter-i.png', category: 'collection', tier: 1, requirement_type: 'collect_rare_items', requirement_value: 1, xp_reward: 50 },
-    { name: 'Rare Hunter II', description: 'Collect 10 rare+ items', icon: '/images/achievements/rare-hunter-ii.png', category: 'collection', tier: 2, requirement_type: 'collect_rare_items', requirement_value: 10, xp_reward: 250 },
-    { name: 'Rare Hunter III', description: 'Collect 50 rare+ items', icon: '/images/achievements/rare-hunter-iii.png', category: 'collection', tier: 3, requirement_type: 'collect_rare_items', requirement_value: 50, xp_reward: 1000 },
+    { name: 'Item Hoarder I', description: 'Receive 10 items', icon: '/images/achievements/item-hoarder-i.png', category: 'collection', tier: 1, requirement_type: 'collect_items', requirement_value: 10, xp_reward: 30 },
+    { name: 'Item Hoarder II', description: 'Receive 50 items', icon: '/images/achievements/item-hoarder-ii.png', category: 'collection', tier: 2, requirement_type: 'collect_items', requirement_value: 50, xp_reward: 150 },
+    { name: 'Item Hoarder III', description: 'Receive 100 items', icon: '/images/achievements/item-hoarder-iii.png', category: 'collection', tier: 3, requirement_type: 'collect_items', requirement_value: 100, xp_reward: 500 },
+    { name: 'Rare Hunter I', description: 'Receive 1 rare+ item', icon: '/images/achievements/rare-hunter-i.png', category: 'collection', tier: 1, requirement_type: 'collect_rare_items', requirement_value: 1, xp_reward: 50 },
+    { name: 'Rare Hunter II', description: 'Receive 10 rare+ items', icon: '/images/achievements/rare-hunter-ii.png', category: 'collection', tier: 2, requirement_type: 'collect_rare_items', requirement_value: 10, xp_reward: 250 },
+    { name: 'Rare Hunter III', description: 'Receive 50 rare+ items', icon: '/images/achievements/rare-hunter-iii.png', category: 'collection', tier: 3, requirement_type: 'collect_rare_items', requirement_value: 50, xp_reward: 1000 },
     { name: 'Full Vault', description: 'Reach max inventory (30/30 items)', icon: '/images/achievements/full-vault.png', category: 'collection', tier: 1, requirement_type: 'max_inventory', requirement_value: 30, xp_reward: 300 },
     
     // Engagement

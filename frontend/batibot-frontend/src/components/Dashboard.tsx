@@ -38,6 +38,8 @@ export const Dashboard: React.FC = () => {
     })
     const [userProgress, setUserProgress] = useState<UserProgress | null>(null)
     const [selectedBadge, setSelectedBadge] = useState<any>(null)
+    const [selectedAchievement, setSelectedAchievement] = useState<any>(null)
+    const [showRanksModal, setShowRanksModal] = useState(false)
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
@@ -112,24 +114,6 @@ export const Dashboard: React.FC = () => {
                     <div className="welcome-section">
                         <h2>Welcome back, {user?.username}!</h2>
                         <p>Ready to make some trades?</p>
-                    </div>
-                    <div className="level-section">
-                        <div className="level-badge">
-                            <span className="level-number">{stats.level}</span>
-                            <span className="level-text">Level</span>
-                        </div>
-                        <div className="experience-bar">
-                            <div className="exp-info">
-                                <span>{stats.experience} XP</span>
-                                <span>{stats.experienceToNext} to next level</span>
-                            </div>
-                            <div className="exp-bar">
-                                <div 
-                                    className="exp-fill"
-                                    style={{ width: `${(stats.experience / (stats.experience + stats.experienceToNext)) * 100}%` }}
-                                ></div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -275,14 +259,23 @@ export const Dashboard: React.FC = () => {
                 <div className="sidebar-content">
                     {/* Rank and Progress */}
                     <div className="rank-section">
-                        <div className="rank-card">
+                        <div className="rank-card" onClick={() => setShowRanksModal(true)} style={{ cursor: 'pointer' }}>
                             <div className="rank-header">
                                 <h3>Current Rank</h3>
-                                <div 
-                                    className="rank-badge"
-                                    style={{ backgroundColor: getRankColor(stats.rank) }}
-                                >
-                                    {stats.rank}
+                                <div className="rank-display">
+                                    {userProgress?.profile.currentRank?.symbol && (
+                                        <img 
+                                            src={userProgress.profile.currentRank.symbol} 
+                                            alt={stats.rank}
+                                            className="rank-icon-large"
+                                        />
+                                    )}
+                                    <div 
+                                        className="rank-badge"
+                                        style={{ backgroundColor: getRankColor(stats.rank) }}
+                                    >
+                                        {stats.rank}
+                                    </div>
                                 </div>
                             </div>
                             <div className="rank-progress">
@@ -297,6 +290,7 @@ export const Dashboard: React.FC = () => {
                                     ></div>
                                 </div>
                             </div>
+                            <p className="rank-click-hint">Click to view all ranks</p>
                         </div>
                     </div>
 
@@ -308,7 +302,9 @@ export const Dashboard: React.FC = () => {
                         </div>
                         
                         <div className="badges-grid-sidebar">
-                            {badges.map((badge) => (
+                            {badges
+                                .sort((a, b) => (b.earned ? 1 : 0) - (a.earned ? 1 : 0))
+                                .map((badge) => (
                                 <div 
                                     key={badge.id}
                                     className={`badge-item-sidebar ${badge.earned ? 'earned' : 'locked'}`}
@@ -340,11 +336,14 @@ export const Dashboard: React.FC = () => {
                         </div>
                         
                         <div className="badges-grid-sidebar">
-                            {(userProgress?.achievements || []).map((achievement) => (
+                            {(userProgress?.achievements || [])
+                                .sort((a, b) => (b.completed ? 1 : 0) - (a.completed ? 1 : 0))
+                                .map((achievement) => (
                                 <div 
                                     key={achievement.id}
                                     className={`badge-item-sidebar ${achievement.completed ? 'earned' : 'locked'}`}
-                                    style={{ borderColor: achievement.completed ? '#4CAF50' : '#666' }}
+                                    onClick={() => setSelectedAchievement(achievement)}
+                                    style={{ borderColor: achievement.completed ? '#4CAF50' : '#666', cursor: 'pointer' }}
                                 >
                                     <div className="badge-icon-small">
                                         <img src={achievement.icon} alt={achievement.name} />
@@ -406,6 +405,109 @@ export const Dashboard: React.FC = () => {
                                     🔒 Not yet earned
                                 </div>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Achievement Detail Modal */}
+            {selectedAchievement && (
+                <div className="badge-modal-overlay" onClick={() => setSelectedAchievement(null)}>
+                    <div className="badge-modal achievement-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="badge-modal-header">
+                            <div className="badge-modal-icon">
+                                <img src={selectedAchievement.icon} alt={selectedAchievement.name} />
+                            </div>
+                            <h3>{selectedAchievement.name}</h3>
+                            <button 
+                                className="close-modal"
+                                onClick={() => setSelectedAchievement(null)}
+                            >
+                                ×
+                            </button>
+                        </div>
+                        <div className="badge-modal-content">
+                            <p>{selectedAchievement.description}</p>
+                            <div className="achievement-category">
+                                Category: {selectedAchievement.category.charAt(0).toUpperCase() + selectedAchievement.category.slice(1)}
+                                {' • Tier '}{selectedAchievement.tier}
+                            </div>
+                            <div className="achievement-requirement">
+                                <strong>Progress:</strong> {selectedAchievement.progress} / {selectedAchievement.requirementValue}
+                            </div>
+                            <div className="achievement-progress-full">
+                                <div 
+                                    className="progress-fill" 
+                                    style={{ width: `${(selectedAchievement.progress / selectedAchievement.requirementValue) * 100}%` }}
+                                />
+                            </div>
+                            <div className="achievement-reward">
+                                🎁 Reward: <strong>{selectedAchievement.xpReward} XP</strong>
+                            </div>
+                            {selectedAchievement.completed ? (
+                                <div className="badge-earned">
+                                    ✅ Completed on {selectedAchievement.completedDate ? new Date(selectedAchievement.completedDate).toLocaleDateString() : 'Unknown'}
+                                </div>
+                            ) : (
+                                <div className="badge-locked">
+                                    🔒 Not yet completed
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Ranks Modal */}
+            {showRanksModal && (
+                <div className="badge-modal-overlay" onClick={() => setShowRanksModal(false)}>
+                    <div className="badge-modal ranks-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="badge-modal-header">
+                            <h3>🏆 All Ranks</h3>
+                            <button 
+                                className="close-modal"
+                                onClick={() => setShowRanksModal(false)}
+                            >
+                                ×
+                            </button>
+                        </div>
+                        <div className="ranks-modal-content">
+                            {userProgress?.ranks.map((rank) => {
+                                const isCurrentRank = rank.id === userProgress.profile.currentRank?.id;
+                                const isUnlocked = userProgress.profile.xp >= rank.xpRequired;
+                                
+                                return (
+                                    <div 
+                                        key={rank.id}
+                                        className={`rank-item ${isCurrentRank ? 'current' : ''} ${isUnlocked ? 'unlocked' : 'locked'}`}
+                                    >
+                                        <div className="rank-item-icon">
+                                            <img src={rank.symbol} alt={rank.name} />
+                                            {isCurrentRank && <span className="current-badge">Current</span>}
+                                        </div>
+                                        <div className="rank-item-info">
+                                            <h4>{rank.name}</h4>
+                                            <p className="rank-level">Level {rank.level}</p>
+                                            <div className="rank-requirements">
+                                                <strong>Requirements:</strong>
+                                                <ul>
+                                                    <li>XP: {rank.xpRequired} {isUnlocked && '✅'}</li>
+                                                    {rank.tradesRequired && rank.tradesRequired > 0 && (
+                                                        <li>Trades: {rank.tradesRequired}</li>
+                                                    )}
+                                                    {rank.itemsRequired && (
+                                                        <li>Items: {rank.itemsRequired}</li>
+                                                    )}
+                                                    {rank.legendaryItemsRequired && (
+                                                        <li>Legendary Items: {rank.legendaryItemsRequired}</li>
+                                                    )}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        {!isUnlocked && <div className="rank-lock">🔒</div>}
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>

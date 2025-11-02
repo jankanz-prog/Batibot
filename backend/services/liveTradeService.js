@@ -445,6 +445,15 @@ class LiveTradeService {
             this.activeTrades.delete(trade.id);
             console.log(`✅ Trade completed: ${trade.id}`);
 
+            // Auto-award trade achievements (async, don't wait)
+            const progressService = require('./progressService');
+            progressService.onTradeComplete(trade.initiator.id).catch(err => 
+                console.error('Error awarding trade achievements to initiator:', err)
+            );
+            progressService.onTradeComplete(trade.target.id).catch(err => 
+                console.error('Error awarding trade achievements to target:', err)
+            );
+
         } catch (error) {
             console.error('❌ Trade execution error:', error);
             
