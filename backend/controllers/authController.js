@@ -3,6 +3,7 @@ const { Op } = require('sequelize');
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 const Profile = require('../models/profileModel');
+const progressService = require('../services/progressService');
 
 const generateToken = (userId) => {
     return jwt.sign({ userId }, process.env.JWT_SECRET || 'your-secret-key', {
@@ -29,6 +30,9 @@ const register = async (req, res) => {
             role: role || 'user' // Default to 'user' if no role provided
         });
         await Profile.create({ user_id: user.id });
+
+        // Auto-award registration achievements
+        await progressService.onUserRegister(user.id);
 
         // Generate token for immediate login after registration
         const token = generateToken(user.id);
@@ -134,6 +138,11 @@ const login = async (req, res) => {
 
         // Get profile picture separately
         const profile = await Profile.findOne({ where: { user_id: user.id } });
+        
+        // Auto-award login achievements (async, don't wait)
+        progressService.onUserLogin(user.id).catch(err => 
+            console.error('Error in onUserLogin:', err)
+        );
         
         // Prioritize file paths over base64 data
         let profilePicture = null;

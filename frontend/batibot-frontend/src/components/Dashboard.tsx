@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
 import { useNavigate } from "react-router-dom"
+import progressAPI, { type UserProgress } from "../services/progressAPI"
 
 interface UserStats {
     tradesCompleted: number
@@ -19,98 +20,58 @@ interface UserStats {
     experienceToNext: number
 }
 
-interface Badge {
-    id: string
-    name: string
-    description: string
-    icon: string
-    earned: boolean
-    earnedDate?: string
-    rarity: 'common' | 'rare' | 'epic' | 'legendary'
-}
-
-// Mock data - replace with actual API calls
-const mockUserStats: UserStats = {
-    tradesCompleted: 47,
-    tradesFailed: 8,
-    tradesInProgress: 3,
-    totalItemsTraded: 156,
-    totalValueTraded: 2847.50,
-    successRate: 85.5,
-    rank: 'Gold Trader',
-    rankProgress: 68,
-    level: 12,
-    experience: 3420,
-    experienceToNext: 1580
-}
-
-const mockBadges: Badge[] = [
-    {
-        id: '1',
-        name: 'First Trade',
-        description: 'Complete your first successful trade',
-        icon: '🎯',
-        earned: true,
-        earnedDate: '2024-01-10',
-        rarity: 'common'
-    },
-    {
-        id: '2',
-        name: 'Speed Trader',
-        description: 'Complete 10 trades in 24 hours',
-        icon: '⚡',
-        earned: true,
-        earnedDate: '2024-01-15',
-        rarity: 'rare'
-    },
-    {
-        id: '3',
-        name: 'High Roller',
-        description: 'Complete a trade worth over $500',
-        icon: '💎',
-        earned: true,
-        earnedDate: '2024-01-20',
-        rarity: 'epic'
-    },
-    {
-        id: '4',
-        name: 'Master Trader',
-        description: 'Achieve 90% success rate with 50+ trades',
-        icon: '👑',
-        earned: false,
-        rarity: 'legendary'
-    },
-    {
-        id: '5',
-        name: 'Collector',
-        description: 'Trade items from 5 different games',
-        icon: '🎮',
-        earned: true,
-        earnedDate: '2024-01-18',
-        rarity: 'rare'
-    },
-    {
-        id: '6',
-        name: 'Negotiator',
-        description: 'Successfully negotiate 25 counter-offers',
-        icon: '🤝',
-        earned: false,
-        rarity: 'epic'
-    }
-]
-
 export const Dashboard: React.FC = () => {
-    const { user, isAdmin } = useAuth()
+    const { user, isAdmin, token } = useAuth()
     const navigate = useNavigate()
-    const [stats] = useState<UserStats>(mockUserStats) // setStats removed - will be used for API integration
-    const [badges] = useState<Badge[]>(mockBadges) // setBadges removed - will be used for API integration
-    const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null)
+    const [stats, setStats] = useState<UserStats>({
+        tradesCompleted: 0,
+        tradesFailed: 0,
+        tradesInProgress: 0,
+        totalItemsTraded: 0,
+        totalValueTraded: 0,
+        successRate: 0,
+        rank: 'Novice',
+        rankProgress: 0,
+        level: 1,
+        experience: 0,
+        experienceToNext: 100
+    })
+    const [userProgress, setUserProgress] = useState<UserProgress | null>(null)
+    const [selectedBadge, setSelectedBadge] = useState<any>(null)
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        // TODO: Fetch real user statistics from API
-        // fetchUserStats()
-        // fetchUserBadges()
-    }, [])
+        const fetchUserProgress = async () => {
+            if (!token) return
+            
+            try {
+                setLoading(true)
+                const progress = await progressAPI.getUserProgress(token)
+                setUserProgress(progress)
+                
+                // Update stats with real data
+                setStats({
+                    tradesCompleted: 0, // TODO: Get from trades API
+                    tradesFailed: 0,
+                    tradesInProgress: 0,
+                    totalItemsTraded: 0,
+                    totalValueTraded: 0,
+                    successRate: 0,
+                    rank: progress.profile.currentRank?.name || 'Novice',
+                    rankProgress: progress.rankProgress,
+                    level: progress.profile.level,
+                    experience: progress.profile.xp,
+                    experienceToNext: progress.nextRank ? progress.nextRank.xpRequired - progress.profile.xp : 0
+                })
+            } catch (error) {
+                console.error('Failed to fetch user progress:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+        
+        fetchUserProgress()
+    }, [token])
 
     const getRarityColor = (rarity: string) => {
         switch (rarity) {
@@ -131,8 +92,18 @@ export const Dashboard: React.FC = () => {
         return '#667eea'
     }
 
+    const badges = userProgress?.badges || []
     const earnedBadges = badges.filter(badge => badge.earned)
-    // unearnedBadges removed - not currently used but available for future features
+
+    if (loading || !userProgress) {
+        return (
+            <div className="dashboard">
+                <div className="dashboard-header">
+                    <h2>Loading your progress...</h2>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="dashboard">
@@ -332,7 +303,7 @@ export const Dashboard: React.FC = () => {
                     {/* Badges Section */}
                     <div className="badges-section">
                         <div className="badges-header">
-                            <h3>Badges & Achievements</h3>
+                            <h3>Badges</h3>
                             <span className="badge-count">{earnedBadges.length}/{badges.length}</span>
                         </div>
                         
@@ -344,14 +315,60 @@ export const Dashboard: React.FC = () => {
                                     onClick={() => setSelectedBadge(badge)}
                                     style={{ borderColor: getRarityColor(badge.rarity) }}
                                 >
-                                    <div className="badge-icon-small">{badge.icon}</div>
+                                    <div className="badge-icon-small">
+                                        <img src={badge.icon} alt={badge.name} />
+                                    </div>
                                     <div className="badge-info-small">
                                         <h4>{badge.name}</h4>
                                         {badge.earned && badge.earnedDate && (
-                                            <p className="earned-date">Earned {badge.earnedDate}</p>
+                                            <p className="earned-date">Earned {new Date(badge.earnedDate).toLocaleDateString()}</p>
                                         )}
                                     </div>
                                     {!badge.earned && <div className="badge-lock-small">🔒</div>}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Achievements Section */}
+                    <div className="badges-section">
+                        <div className="badges-header">
+                            <h3>Achievements</h3>
+                            <span className="badge-count">
+                                {userProgress?.achievements.filter(a => a.completed).length}/{userProgress?.achievements.length || 0}
+                            </span>
+                        </div>
+                        
+                        <div className="badges-grid-sidebar">
+                            {(userProgress?.achievements || []).map((achievement) => (
+                                <div 
+                                    key={achievement.id}
+                                    className={`badge-item-sidebar ${achievement.completed ? 'earned' : 'locked'}`}
+                                    style={{ borderColor: achievement.completed ? '#4CAF50' : '#666' }}
+                                >
+                                    <div className="badge-icon-small">
+                                        <img src={achievement.icon} alt={achievement.name} />
+                                    </div>
+                                    <div className="badge-info-small">
+                                        <h4>{achievement.name}</h4>
+                                        <p className="achievement-progress">
+                                            {achievement.progress}/{achievement.requirementValue} 
+                                            {achievement.completed && ` (+${achievement.xpReward} XP)`}
+                                        </p>
+                                        {achievement.completed && achievement.completedDate && (
+                                            <p className="earned-date">
+                                                Completed {new Date(achievement.completedDate).toLocaleDateString()}
+                                            </p>
+                                        )}
+                                    </div>
+                                    {!achievement.completed && (
+                                        <div className="achievement-progress-bar">
+                                            <div 
+                                                className="progress-fill" 
+                                                style={{ width: `${(achievement.progress / achievement.requirementValue) * 100}%` }}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -364,7 +381,9 @@ export const Dashboard: React.FC = () => {
                 <div className="badge-modal-overlay" onClick={() => setSelectedBadge(null)}>
                     <div className="badge-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="badge-modal-header">
-                            <div className="badge-modal-icon">{selectedBadge.icon}</div>
+                            <div className="badge-modal-icon">
+                                <img src={selectedBadge.icon} alt={selectedBadge.name} />
+                            </div>
                             <h3>{selectedBadge.name}</h3>
                             <button 
                                 className="close-modal"
@@ -380,7 +399,7 @@ export const Dashboard: React.FC = () => {
                             </div>
                             {selectedBadge.earned ? (
                                 <div className="badge-earned">
-                                    ✅ Earned on {selectedBadge.earnedDate}
+                                    ✅ Earned on {selectedBadge.earnedDate ? new Date(selectedBadge.earnedDate).toLocaleDateString() : 'Unknown'}
                                 </div>
                             ) : (
                                 <div className="badge-locked">
