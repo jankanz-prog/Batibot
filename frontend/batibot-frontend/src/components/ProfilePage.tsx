@@ -1,15 +1,28 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
+import { useCardanoWallet } from "../context/CardanoWalletContext"
 import { authAPI } from "../services/authAPI"
 import type { ProfileUpdateRequest } from "../types/auth"
+import { WalletInstructionModal } from "./WalletInstructionModal"
+import { Core } from '@blaze-cardano/sdk'
 
 export const ProfilePage: React.FC = () => {
     const { user, token, logout, updateUser } = useAuth()
+    const { 
+        walletAddress, 
+        availableWallets, 
+        isConnecting, 
+        isConnected, 
+        connectWallet, 
+        disconnectWallet 
+    } = useCardanoWallet()
     const [isEditing, setIsEditing] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
     const [success, setSuccess] = useState("")
+    const [showInstructionModal, setShowInstructionModal] = useState(false)
+    const [selectedWalletName, setSelectedWalletName] = useState<string>("")
     const [formData, setFormData] = useState({
         username: user?.username || "",
         email: user?.email || "",
@@ -150,6 +163,72 @@ export const ProfilePage: React.FC = () => {
         setSuccess("")
     }
 
+    const handleConnectWallet = async () => {
+        if (availableWallets.length === 0) {
+            setShowInstructionModal(true)
+            return
+        }
+
+        if (!selectedWalletName) {
+            setError("Please select a wallet")
+            return
+        }
+
+        try {
+            setError("")
+            await connectWallet(selectedWalletName)
+            
+            // Give it a moment for the wallet to fully connect
+            setTimeout(async () => {
+                // Convert hex address to bech32 and save to profile
+                if (walletAddress) {
+                    const bech32Address = Core.Address.fromBytes(walletAddress as any).toBech32()
+                    
+                    // Only save if it's different from saved address
+                    if (user?.wallet_address !== bech32Address) {
+                        // Update profile with wallet address
+                        await authAPI.updateProfile({ wallet_address: bech32Address }, token!)
+                        
+                        // Update user context
+                        if (user) {
+                            updateUser({ ...user, wallet_address: bech32Address })
+                        }
+                    }
+                    
+                    setSuccess("Wallet connected successfully! Balance will update shortly.")
+                }
+            }, 500)
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to connect wallet")
+        }
+    }
+
+    const handleDisconnectWallet = async () => {
+        try {
+            disconnectWallet()
+            
+            // Remove wallet address from profile
+            await authAPI.updateProfile({ wallet_address: "" }, token!)
+            setSuccess("Wallet disconnected successfully!")
+            
+            // Update user context
+            if (user) {
+                updateUser({ ...user, wallet_address: "" })
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to disconnect wallet")
+        }
+    }
+
+    // Sync wallet connection with user's stored address on mount
+    useEffect(() => {
+        if (user?.wallet_address && !isConnected && availableWallets.length > 0) {
+            // Auto-select lace if available
+            const walletToUse = availableWallets.includes('lace') ? 'lace' : availableWallets[0]
+            setSelectedWalletName(walletToUse)
+        }
+    }, [user, isConnected, availableWallets])
+
     if (!user) {
         return (
             <div className="access-denied">
@@ -242,16 +321,101 @@ export const ProfilePage: React.FC = () => {
                         </div>
 
                         <div className="form-group">
-                            <label htmlFor="wallet_address">Wallet Address (Optional)</label>
-                            <input
-                                type="text"
-                                id="wallet_address"
-                                name="wallet_address"
-                                value={formData.wallet_address}
-                                onChange={handleInputChange}
-                                disabled={!isEditing || loading}
-                                placeholder="Enter your wallet address"
-                            />
+                            <label>Cardano Wallet Connection</label>
+                            {user.wallet_address ? (
+                                <div className="wallet-connected">
+                                    <div className="wallet-info">
+                                        <p><strong>Saved Address:</strong></p>
+                                        <p className="wallet-address">{user.wallet_address}</p>
+                                        {!isConnected && (
+                                            <div style={{ 
+                                                marginTop: '0.75rem', 
+                                                padding: '0.75rem', 
+                                                background: '#fff3e0', 
+                                                borderRadius: '6px',
+                                                border: '1px solid #ff9800'
+                                            }}>
+                                                <p style={{ margin: '0 0 0.5rem 0', color: '#ff9800', fontWeight: 500 }}>
+                                                    ⚠️ Wallet not connected in this session
+                                                </p>
+                                                <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.9rem', color: '#666' }}>
+                                                    Connect your wallet to view balance and send transactions
+                                                </p>
+                                                <div className="wallet-connect-form">
+                                                    <select
+                                                        value={selectedWalletName}
+                                                        onChange={(e) => setSelectedWalletName(e.target.value)}
+                                                        className="wallet-select"
+                                                    >
+                                                        <option value="">Select Wallet</option>
+                                                        {availableWallets.map((wallet) => (
+                                                            <option key={wallet} value={wallet}>
+                                                                {wallet.charAt(0).toUpperCase() + wallet.slice(1)}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleConnectWallet}
+                                                        disabled={isConnecting || !selectedWalletName}
+                                                        className="btn btn-primary"
+                                                        style={{ marginTop: '0.5rem' }}
+                                                    >
+                                                        {isConnecting ? "Reconnecting..." : "Reconnect Wallet"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleDisconnectWallet}
+                                        className="btn btn-danger"
+                                        style={{ marginTop: '0.5rem' }}
+                                    >
+                                        Disconnect Wallet
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="wallet-not-connected">
+                                    {availableWallets.length === 0 ? (
+                                        <div className="no-wallet-prompt">
+                                            <p>No Cardano wallet detected.</p>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowInstructionModal(true)}
+                                                className="btn btn-info"
+                                            >
+                                                No wallet connected. Create now?
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="wallet-connect-form">
+                                            <select
+                                                value={selectedWalletName}
+                                                onChange={(e) => setSelectedWalletName(e.target.value)}
+                                                className="wallet-select"
+                                            >
+                                                <option value="">Select Wallet</option>
+                                                {availableWallets.map((wallet) => (
+                                                    <option key={wallet} value={wallet}>
+                                                        {wallet.charAt(0).toUpperCase() + wallet.slice(1)}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <button
+                                                type="button"
+                                                onClick={handleConnectWallet}
+                                                disabled={isConnecting || !selectedWalletName}
+                                                className="btn btn-primary"
+                                                style={{ marginTop: '0.5rem' }}
+                                            >
+                                                {isConnecting ? "Connecting..." : "Connect Wallet"}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         <div className="form-group">
@@ -300,6 +464,11 @@ export const ProfilePage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <WalletInstructionModal 
+                isOpen={showInstructionModal} 
+                onClose={() => setShowInstructionModal(false)} 
+            />
         </div>
     )
 }

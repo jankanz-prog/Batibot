@@ -5,6 +5,7 @@ import { ProtectedRoute } from "./ProtectedRoute"
 import { Layout } from "./Layout"
 import { NotificationProvider } from "../context/NotificationContext"
 import { LiveTradeProvider } from "../context/LiveTradeContext"
+import { CardanoWalletProvider } from "../context/CardanoWalletContext"
 import { Dashboard } from "./Dashboard"
 import { ProfilePage } from "./ProfilePage"
 import { NotesPage } from "./NotesPage"
@@ -21,9 +22,10 @@ export const AppWithTokenRefresh: React.FC = () => {
     return (
         <Router>
             <ProtectedRoute>
-                <NotificationProvider>
-                    <LiveTradeProvider>
-                        <Layout>
+                <CardanoWalletProvider>
+                    <NotificationProvider>
+                        <LiveTradeProvider>
+                            <Layout>
                             <Routes>
                                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                                 <Route path="/dashboard" element={<Dashboard />} />
@@ -41,9 +43,10 @@ export const AppWithTokenRefresh: React.FC = () => {
                                 <Route path="/notes" element={<NotesPage />} />
                                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
                             </Routes>
-                        </Layout>
-                    </LiveTradeProvider>
-                </NotificationProvider>
+                            </Layout>
+                        </LiveTradeProvider>
+                    </NotificationProvider>
+                </CardanoWalletProvider>
             </ProtectedRoute>
         </Router>
     )

@@ -1,7 +1,10 @@
 import type React from "react"
+import { useState, useEffect, useRef } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
+import { useCardanoWallet } from "../context/CardanoWalletContext"
 import { NotificationBell } from "./NotificationBell"
+import "../styles/ProfileDropdown.css"
 
 interface LayoutProps {
     children: React.ReactNode
@@ -9,12 +12,38 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
     const { user, logout, isAdmin } = useAuth()
+    const { walletBalance, refreshBalance, isConnected } = useCardanoWallet()
     const navigate = useNavigate()
     const location = useLocation()
+    const [showDropdown, setShowDropdown] = useState(false)
+    const dropdownRef = useRef<HTMLDivElement>(null)
 
     const navigateToProfile = () => {
         navigate("/profile")
+        setShowDropdown(false)
     }
+
+    // Refresh wallet balance every 30 seconds if connected
+    useEffect(() => {
+        if (isConnected && user?.wallet_address) {
+            refreshBalance()
+            const interval = setInterval(() => {
+                refreshBalance()
+            }, 30000)
+            return () => clearInterval(interval)
+        }
+    }, [isConnected, user?.wallet_address, refreshBalance])
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setShowDropdown(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
 
     const navigateToDashboard = () => {
         navigate("/dashboard")
@@ -93,25 +122,66 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                                 >
                                     Notes
                                 </button>
-                                <button
-                                    onClick={navigateToProfile}
-                                    className={`nav-button ${location.pathname === '/profile' ? 'active' : ''}`}
-                                >
-                                    Profile
-                                </button>
                             </nav>
 
                             <NotificationBell />
 
-                            <div className="header-profile-picture">
-                                {user.profile_picture ? (
-                                    <img 
-                                        src={`http://localhost:3001${user.profile_picture}`} 
-                                        alt="Profile" 
-                                    />
-                                ) : (
-                                    <div className="header-profile-placeholder">
-                                        {user.username.charAt(0).toUpperCase()}
+                            <div className="profile-dropdown-container" ref={dropdownRef}>
+                                <div 
+                                    className="header-profile-picture clickable" 
+                                    onClick={() => setShowDropdown(!showDropdown)}
+                                    title="Click for options"
+                                >
+                                    {user.profile_picture ? (
+                                        <img 
+                                            src={`http://localhost:3001${user.profile_picture}`} 
+                                            alt="Profile" 
+                                        />
+                                    ) : (
+                                        <div className="header-profile-placeholder">
+                                            {user.username.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {showDropdown && (
+                                    <div className="profile-dropdown">
+                                        <div className="dropdown-header">
+                                            <span className="dropdown-username">{user.username}</span>
+                                            {isAdmin && <span className="admin-badge">Admin</span>}
+                                        </div>
+                                        
+                                        {user.wallet_address && (
+                                            <div className="dropdown-wallet-info">
+                                                <div className="wallet-balance-item">
+                                                    <span className="wallet-label">💰 Wallet Balance:</span>
+                                                    <span className="wallet-balance">
+                                                        {isConnected ? (
+                                                            walletBalance ? `${walletBalance} ADA` : 'Loading...'
+                                                        ) : (
+                                                            <span className="wallet-disconnected-hint">
+                                                                Not connected
+                                                                <small style={{ display: 'block', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                                                                    Go to Profile to reconnect
+                                                                </small>
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="dropdown-divider" />
+
+                                        <button className="dropdown-item" onClick={navigateToProfile}>
+                                            👤 View Profile
+                                        </button>
+
+                                        <div className="dropdown-divider" />
+
+                                        <button className="dropdown-item logout-item" onClick={logout}>
+                                            🚪 Logout
+                                        </button>
                                     </div>
                                 )}
                             </div>
@@ -120,9 +190,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                                 Welcome, {user.username}
                                 {isAdmin && <span className="admin-badge">Admin</span>}
                             </span>
-                            <button onClick={logout} className="logout-button">
-                                Logout
-                            </button>
                         </div>
                     )}
                 </div>
