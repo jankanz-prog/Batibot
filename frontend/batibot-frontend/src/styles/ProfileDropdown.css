@@ -1,0 +1,231 @@
+.profile-dropdown-container {
+    position: relative;
+}
+
+.header-profile-picture.clickable {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.header-profile-picture.clickable:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.5);
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    min-width: 280px;
+    z-index: 1000;
+    overflow: hidden;
+    animation: dropdownSlideIn 0.2s ease-out;
+}
+
+@keyframes dropdownSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-header {
+    padding: 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.dropdown-username {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.dropdown-header .admin-badge {
+    background: rgba(255, 255, 255, 0.3);
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.dropdown-wallet-info {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.wallet-balance-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.wallet-label {
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.wallet-balance {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #667eea;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.wallet-disconnected-hint {
+    font-size: 0.95rem;
+    color: #ff9800;
+    font-weight: 500;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: #e0e0e0;
+    margin: 0;
+}
+
+.dropdown-item {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #333;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dropdown-item:hover {
+    background: #f5f5f5;
+}
+
+.dropdown-item.logout-item {
+    color: #dc3545;
+}
+
+.dropdown-item.logout-item:hover {
+    background: #fff5f5;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .profile-dropdown {
+        min-width: 240px;
+        right: -10px;
+    }
+
+    .welcome-text {
+        display: none;
+    }
+}
+
+/* Wallet connection styles for profile page */
+.wallet-connected {
+    padding: 1rem;
+    background: #e8f5e9;
+    border: 1px solid #4caf50;
+    border-radius: 8px;
+}
+
+.wallet-info p {
+    margin: 0.25rem 0;
+    color: #333;
+}
+
+.wallet-address {
+    font-family: monospace;
+    font-size: 0.85rem;
+    word-break: break-all;
+    color: #666;
+}
+
+.wallet-not-connected {
+    padding: 1rem;
+    background: #fff3e0;
+    border: 1px solid #ff9800;
+    border-radius: 8px;
+}
+
+.no-wallet-prompt {
+    text-align: center;
+}
+
+.no-wallet-prompt p {
+    margin-bottom: 1rem;
+    color: #666;
+}
+
+.wallet-connect-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.wallet-select {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: white;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+}
+
+.btn-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #138496;
+}
