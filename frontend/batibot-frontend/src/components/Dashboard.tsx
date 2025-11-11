@@ -115,6 +115,26 @@ export const Dashboard: React.FC = () => {
                         <h2>Welcome back, {user?.username}!</h2>
                         <p>Ready to make some trades?</p>
                     </div>
+                    
+                    <div className="level-section">
+                        <div className="level-badge">
+                            <span className="level-number">{stats.level}</span>
+                            <span className="level-text">Level</span>
+                        </div>
+                        
+                        <div className="experience-bar">
+                            <div className="exp-info">
+                                <span>Experience</span>
+                                <span>{stats.experience} / {stats.experience + stats.experienceToNext} XP</span>
+                            </div>
+                            <div className="exp-bar">
+                                <div 
+                                    className="exp-fill"
+                                    style={{ width: `${(stats.experience / (stats.experience + stats.experienceToNext)) * 100}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -222,6 +242,7 @@ export const Dashboard: React.FC = () => {
                         </div>
                     </div>
 
+
                     {/* Admin Panel */}
                     {isAdmin && (
                         <div className="admin-section">
@@ -297,7 +318,7 @@ export const Dashboard: React.FC = () => {
                     {/* Badges Section */}
                     <div className="badges-section">
                         <div className="badges-header">
-                            <h3>Badges</h3>
+                            <h3>🎖️ Badges</h3>
                             <span className="badge-count">{earnedBadges.length}/{badges.length}</span>
                         </div>
                         
@@ -321,53 +342,6 @@ export const Dashboard: React.FC = () => {
                                         )}
                                     </div>
                                     {!badge.earned && <div className="badge-lock-small">🔒</div>}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Achievements Section */}
-                    <div className="badges-section">
-                        <div className="badges-header">
-                            <h3>Achievements</h3>
-                            <span className="badge-count">
-                                {userProgress?.achievements.filter(a => a.completed).length}/{userProgress?.achievements.length || 0}
-                            </span>
-                        </div>
-                        
-                        <div className="badges-grid-sidebar">
-                            {(userProgress?.achievements || [])
-                                .sort((a, b) => (b.completed ? 1 : 0) - (a.completed ? 1 : 0))
-                                .map((achievement) => (
-                                <div 
-                                    key={achievement.id}
-                                    className={`badge-item-sidebar ${achievement.completed ? 'earned' : 'locked'}`}
-                                    onClick={() => setSelectedAchievement(achievement)}
-                                    style={{ borderColor: achievement.completed ? '#4CAF50' : '#666', cursor: 'pointer' }}
-                                >
-                                    <div className="badge-icon-small">
-                                        <img src={achievement.icon} alt={achievement.name} />
-                                    </div>
-                                    <div className="badge-info-small">
-                                        <h4>{achievement.name}</h4>
-                                        <p className="achievement-progress">
-                                            {achievement.progress}/{achievement.requirementValue} 
-                                            {achievement.completed && ` (+${achievement.xpReward} XP)`}
-                                        </p>
-                                        {achievement.completed && achievement.completedDate && (
-                                            <p className="earned-date">
-                                                Completed {new Date(achievement.completedDate).toLocaleDateString()}
-                                            </p>
-                                        )}
-                                    </div>
-                                    {!achievement.completed && (
-                                        <div className="achievement-progress-bar">
-                                            <div 
-                                                className="progress-fill" 
-                                                style={{ width: `${(achievement.progress / achievement.requirementValue) * 100}%` }}
-                                            />
-                                        </div>
-                                    )}
                                 </div>
                             ))}
                         </div>

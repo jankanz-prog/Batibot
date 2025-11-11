@@ -27,6 +27,7 @@ export const ItemsPage: React.FC = () => {
     const [ownershipFilter, setOwnershipFilter] = useState<string>('all');
     const [sortBy, setSortBy] = useState<'name' | 'rarity' | 'category'>('name');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+    const [showFilters, setShowFilters] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -249,23 +250,29 @@ export const ItemsPage: React.FC = () => {
                 </div>
             )}
 
+            {/* Search Bar and Filter Toggle */}
+            <div className="search-filter-bar">
+                <input
+                    type="text"
+                    placeholder="🔍 Search items by name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="search-input-main"
+                />
+                <button 
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`filter-toggle-btn ${showFilters ? 'active' : ''}`}
+                >
+                    {showFilters ? '✕ Close Filters' : '⚙️ Sort & Filter'}
+                </button>
+            </div>
+
             <div className="inventory-content-wrapper">
-                {/* Filters Sidebar */}
+                {/* Filters Sidebar - Collapsible */}
+                {showFilters && (
                 <aside className="filters-sidebar">
                     <div className="filters-header">
-                        <h3>🔍 Filters</h3>
-                    </div>
-
-                    {/* Search */}
-                    <div className="filter-group">
-                        <label>Search Items</label>
-                        <input
-                            type="text"
-                            placeholder="Search by name..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="filter-input"
-                        />
+                        <h3>Sort & Filter Options</h3>
                     </div>
 
                     {/* Rarity Filter */}
@@ -388,6 +395,7 @@ export const ItemsPage: React.FC = () => {
                         <small>💡 Showing {filteredAndSortedItems.length} of {items.length} items</small>
                     </div>
                 </aside>
+                )}
 
                 {/* Main Content */}
                 <div className="inventory-main-content">

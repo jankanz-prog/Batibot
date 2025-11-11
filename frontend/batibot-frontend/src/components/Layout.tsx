@@ -198,7 +198,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <main className="app-main">{children}</main>
 
             <footer className="app-footer">
-                <p>&copy; 2024 Batibot App. All rights reserved.</p>
+                <div className="footer-content">
+                    <p className="footer-text">&copy; 2024 Batibot App. All rights reserved.</p>
+                </div>
             </footer>
         </div>
     )
