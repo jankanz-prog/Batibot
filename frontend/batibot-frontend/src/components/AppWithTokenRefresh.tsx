@@ -7,6 +7,7 @@ import { NotificationProvider } from "../context/NotificationContext"
 import { LiveTradeProvider } from "../context/LiveTradeContext"
 import { Dashboard } from "./Dashboard"
 import { ProfilePage } from "./ProfilePage"
+import { AchievementsPage } from "./AchievementsPage"
 import { NotesPage } from "./NotesPage"
 import { TradePage } from "./TradePage"
 import { TradeOffersPage } from "./TradeOffersPage"
@@ -38,6 +39,7 @@ export const AppWithTokenRefresh: React.FC = () => {
                                 <Route path="/trade" element={<TradePage />} />
                                 <Route path="/trade-offers" element={<TradeOffersPage />} />
                                 <Route path="/profile" element={<ProfilePage />} />
+                                <Route path="/profile/achievements" element={<AchievementsPage />} />
                                 <Route path="/notes" element={<NotesPage />} />
                                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
                             </Routes>
