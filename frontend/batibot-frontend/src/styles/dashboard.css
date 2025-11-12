@@ -158,16 +158,22 @@
     color: var(--text-primary);
 }
 
-/* Stats Grid */
+/* Stats Grid - 3 columns for better visibility */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
 }
 
-@media (min-width: 1200px) {
+@media (max-width: 1024px) {
     .stats-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -175,11 +181,14 @@
     background: var(--bg-tertiary);
     border: 1px solid var(--border-primary);
     border-radius: 8px;
-    padding: 1.25rem;
+    padding: 1.5rem;
     transition: all 0.2s ease;
     display: flex;
+    flex-direction: column;
     align-items: center;
+    text-align: center;
     gap: 1rem;
+    min-height: 140px;
 }
 
 .stat-card:hover {
@@ -190,19 +199,24 @@
 
 .stat-content {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .stat-content h3 {
-    font-size: 1.75rem;
+    font-size: 2rem;
     font-weight: 700;
     color: var(--text-primary);
-    margin: 0 0 0.25rem 0;
+    margin: 0 0 0.5rem 0;
 }
 
 .stat-content p {
     font-size: 0.875rem;
     color: var(--text-secondary);
     margin: 0;
+    font-weight: 500;
 }
 
 .stat-header {
@@ -221,15 +235,16 @@
 }
 
 .stat-icon {
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-tertiary);
+    background: var(--bg-secondary);
     color: var(--accent-primary);
     font-size: 1.5rem;
+    margin-bottom: 0.5rem;
 }
 
 .stat-value {
@@ -590,11 +605,17 @@
 
 .action-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
+    .action-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
     .action-grid {
         grid-template-columns: 1fr;
     }
@@ -606,11 +627,13 @@
     border-radius: 8px;
     padding: 1.5rem;
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 1rem;
     cursor: pointer;
     transition: all 0.2s ease;
-    text-align: left;
+    text-align: center;
+    min-height: 140px;
 }
 
 .action-card:hover {
@@ -800,6 +823,13 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.badges-header:hover {
+    background: var(--bg-elevated);
 }
 
 .badges-header h3 {
@@ -807,6 +837,7 @@
     font-size: 1.125rem;
     font-weight: 600;
     color: var(--text-primary);
+    user-select: none;
 }
 
 .badge-count {

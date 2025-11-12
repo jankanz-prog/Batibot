@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { useAuth } from "../context/AuthContext"
 import { notesAPI } from "../services/notesAPI"
 import type { CreateNoteRequest, Note, UpdateNoteRequest } from "../types/notes"
+import { Plus, Search, Star, Edit2, Trash2, X } from "lucide-react"
 import "../styles/notes.css"
 
 export const NotesPage: React.FC = () => {
@@ -13,6 +14,7 @@ export const NotesPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null)
 
     const [searchTerm, setSearchTerm] = useState("")
+    const [colorFilter, setColorFilter] = useState<string | null>(null)
 
     const [isCreating, setIsCreating] = useState(false)
     const [newNote, setNewNote] = useState<CreateNoteRequest>({ title: "", content: "" })
@@ -137,12 +139,29 @@ export const NotesPage: React.FC = () => {
         }
     }
 
+    // Extract hashtags from content
+    const extractHashtags = (text: string): string[] => {
+        const hashtagRegex = /#[\w]+/g
+        return text.match(hashtagRegex) || []
+    }
+
+    // Get color theme from hashtags
+    const getNoteColor = (note: Note): string => {
+        const content = note.content || ""
+        if (content.includes("#red") || content.includes("#urgent") || content.includes("#important")) return "red"
+        if (content.includes("#blue") || content.includes("#info") || content.includes("#note")) return "blue"
+        if (content.includes("#green") || content.includes("#success") || content.includes("#done")) return "green"
+        if (content.includes("#yellow") || content.includes("#warning") || content.includes("#todo")) return "yellow"
+        if (content.includes("#purple") || content.includes("#idea") || content.includes("#creative")) return "purple"
+        return "default"
+    }
+
     const filteredNotes = notes.filter(n => {
         const term = searchTerm.toLowerCase()
-        return (
-            n.title.toLowerCase().includes(term) ||
+        const matchesSearch = n.title.toLowerCase().includes(term) ||
             (n.content ? n.content.toLowerCase().includes(term) : false)
-        )
+        const matchesColor = !colorFilter || getNoteColor(n) === colorFilter
+        return matchesSearch && matchesColor
     })
 
     const formatDate = (iso: string) =>
@@ -173,7 +192,7 @@ export const NotesPage: React.FC = () => {
                         setError(null)
                     }}
                 >
-                    Create New Note
+                    <Plus size={18} /> Create New Note
                 </button>
             </div>
 
@@ -186,14 +205,50 @@ export const NotesPage: React.FC = () => {
                 </div>
             )}
 
-            <div className="search-container">
-                <input
-                    type="text"
-                    className="search-input"
-                    placeholder="Search notes by title or content..."
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                />
+            <div className="notes-filters">
+                <div className="search-container">
+                    <Search size={18} className="search-icon" />
+                    <input
+                        type="text"
+                        className="search-input"
+                        placeholder="Search notes by title or content..."
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="color-filters">
+                    <button 
+                        className={`color-filter-btn ${!colorFilter ? 'active' : ''}`}
+                        onClick={() => setColorFilter(null)}
+                    >
+                        All
+                    </button>
+                    <button 
+                        className={`color-filter-btn color-red ${colorFilter === 'red' ? 'active' : ''}`}
+                        onClick={() => setColorFilter('red')}
+                        title="Red (#red, #urgent, #important)"
+                    />
+                    <button 
+                        className={`color-filter-btn color-blue ${colorFilter === 'blue' ? 'active' : ''}`}
+                        onClick={() => setColorFilter('blue')}
+                        title="Blue (#blue, #info, #note)"
+                    />
+                    <button 
+                        className={`color-filter-btn color-green ${colorFilter === 'green' ? 'active' : ''}`}
+                        onClick={() => setColorFilter('green')}
+                        title="Green (#green, #success, #done)"
+                    />
+                    <button 
+                        className={`color-filter-btn color-yellow ${colorFilter === 'yellow' ? 'active' : ''}`}
+                        onClick={() => setColorFilter('yellow')}
+                        title="Yellow (#yellow, #warning, #todo)"
+                    />
+                    <button 
+                        className={`color-filter-btn color-purple ${colorFilter === 'purple' ? 'active' : ''}`}
+                        onClick={() => setColorFilter('purple')}
+                        title="Purple (#purple, #idea, #creative)"
+                    />
+                </div>
             </div>
 
             {isCreating && (
@@ -209,7 +264,7 @@ export const NotesPage: React.FC = () => {
                                 }}
                                 aria-label="Close"
                             >
-                                ×
+                                <X size={20} />
                             </button>
                         </div>
 
@@ -272,7 +327,7 @@ export const NotesPage: React.FC = () => {
                                 }}
                                 aria-label="Close"
                             >
-                                ×
+                                <X size={20} />
                             </button>
                         </div>
 
@@ -349,8 +404,11 @@ export const NotesPage: React.FC = () => {
                             : "No notes yet. Create your first note!"}
                     </div>
                 ) : (
-                    filteredNotes.map(note => (
-                        <div key={note.id} className="note-card">
+                    filteredNotes.map(note => {
+                        const hashtags = extractHashtags(note.content || "")
+                        const noteColor = getNoteColor(note)
+                        return (
+                        <div key={note.id} className={`note-card note-${noteColor}`}>
                             <div className="note-header">
                                 <h3 className="note-title" title={note.title}>
                                     {note.title}
@@ -361,13 +419,13 @@ export const NotesPage: React.FC = () => {
                                         onClick={() => handleToggleFavorite(note.id)}
                                         title={note.favorited ? "Remove from favorites" : "Add to favorites"}
                                     >
-                                        {note.favorited ? "★" : "☆"}
+                                        <Star size={18} fill={note.favorited ? "currentColor" : "none"} />
                                     </button>
                                     <button className="btn btn-secondary" onClick={() => startEdit(note)}>
-                                        Edit
+                                        <Edit2 size={16} /> Edit
                                     </button>
                                     <button className="btn btn-danger" onClick={() => setDeleteConfirm(note.id)}>
-                                        Delete
+                                        <Trash2 size={16} /> Delete
                                     </button>
                                 </div>
                             </div>
@@ -375,6 +433,13 @@ export const NotesPage: React.FC = () => {
                             {note.content && (
                                 <div className="note-content">
                                     <p>{note.content}</p>
+                                    {hashtags.length > 0 && (
+                                        <div className="note-hashtags">
+                                            {hashtags.map((tag, idx) => (
+                                                <span key={idx} className="hashtag">{tag}</span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
@@ -385,7 +450,8 @@ export const NotesPage: React.FC = () => {
                                 )}
                             </div>
                         </div>
-                    ))
+                        )
+                    })
                 )}
             </div>
         </div>

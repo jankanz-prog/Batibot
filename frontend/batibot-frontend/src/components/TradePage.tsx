@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext"
 import { tradeAPI } from "../services/tradeAPI"
 import { TradeOfferModal } from "./TradeOfferModal"
 import { liveTradeWS } from "../services/liveTradeWebSocket"
+import { Search, Send, Zap, Package } from "lucide-react"
 
 interface MarketplaceItem {
     inventory_id: string
@@ -144,6 +145,7 @@ export const TradePage: React.FC = () => {
                         </div>
 
                         <div className="search-container">
+                            <Search size={18} className="search-icon" />
                             <input
                                 type="text"
                                 placeholder="Search items or sellers..."
@@ -162,7 +164,7 @@ export const TradePage: React.FC = () => {
                                     style={{ background: getRarityGradient(item.rarity.toLowerCase()) }}
                                 >
                                     <div className="item-image-placeholder">
-                                        <div className="item-icon">🎮</div>
+                                        <div className="item-icon"><Package size={48} /></div>
                                     </div>
                                     <div className="item-rarity-badge">{item.rarity}</div>
                                 </div>
@@ -179,13 +181,13 @@ export const TradePage: React.FC = () => {
                                             className="offer-trade-btn"
                                             onClick={() => handleOfferTrade(item)}
                                         >
-                                            📨 Offer Trade
+                                            <Send size={16} /> Offer Trade
                                         </button>
                                         <button 
                                             className="live-trade-btn"
                                             onClick={() => handleLiveTrade(item)}
                                         >
-                                            ⚡ Live Trade
+                                            <Zap size={16} /> Live Trade
                                         </button>
                                     </div>
                                 </div>

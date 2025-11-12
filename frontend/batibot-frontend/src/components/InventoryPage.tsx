@@ -3,6 +3,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { inventoryAPI } from '../services/itemsAPI';
 import type { InventoryItem } from '../types/items';
+import { Search, SlidersHorizontal, Package, Trash2, RotateCcw, RefreshCw, ChevronLeft, ChevronRight, Gamepad2 } from 'lucide-react';
+import '../styles/inventory-stats.css';
 
 export const InventoryPage: React.FC = () => {
     const { token } = useAuth();
@@ -20,6 +22,9 @@ export const InventoryPage: React.FC = () => {
     const [rarityFilter, setRarityFilter] = useState<string>('all');
     const [sortBy, setSortBy] = useState<'name' | 'rarity' | 'quantity' | 'date'>('date');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [showFilters, setShowFilters] = useState(false);
+    const [currentPage, setCurrentPage] = useState(0);
+    const ITEMS_PER_PAGE = 9; // 3x3 grid
 
     useEffect(() => {
         loadInventory();
@@ -261,29 +266,31 @@ export const InventoryPage: React.FC = () => {
             <div className="inventory-header">
                 <div className="header-left">
                     <h1 className="items-title">My Inventory</h1>
-                    <p className="items-subtitle">🎮 Manage your collected items</p>
+                    <p className="items-subtitle"><Gamepad2 size={20} style={{ display: 'inline', marginBottom: '-4px' }} /> Manage your collected items</p>
                 </div>
                 <div className="header-actions">
                     <button 
                         onClick={() => {
                             setShowDeleted(!showDeleted);
                             setSelectedItems(new Set());
+                            setCurrentPage(0);
                         }} 
                         className={`filter-btn ${!showDeleted ? 'active' : ''}`}
                     >
-                        📦 Active ({inventory.length})
+                        <Package size={16} /> Active ({inventory.length})
                     </button>
                     <button 
                         onClick={() => {
                             setShowDeleted(!showDeleted);
                             setSelectedItems(new Set());
+                            setCurrentPage(0);
                         }} 
                         className={`filter-btn ${showDeleted ? 'active' : ''}`}
                     >
-                        🗑️ Deleted ({deletedItems.length})
+                        <Trash2 size={16} /> Deleted ({deletedItems.length})
                     </button>
                     <button onClick={loadInventory} className="admin-btn">
-                        🔄 Refresh
+                        <RefreshCw size={16} /> Refresh
                     </button>
                 </div>
             </div>
@@ -309,23 +316,33 @@ export const InventoryPage: React.FC = () => {
                 </div>
             </div>
 
+            {/* Search Bar and Filter Toggle */}
+            <div className="search-filter-bar">
+                <div className="search-input-wrapper">
+                    <Search size={20} className="search-icon" />
+                    <input
+                        type="text"
+                        placeholder="Search items by name..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="search-input-main"
+                    />
+                </div>
+                <button 
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`filter-toggle-btn ${showFilters ? 'active' : ''}`}
+                >
+                    <SlidersHorizontal size={18} />
+                    {showFilters ? 'Close Filters' : 'Sort & Filter'}
+                </button>
+            </div>
+
             <div className="inventory-content-wrapper">
-                {/* Filters Sidebar */}
+                {/* Filters Sidebar - Collapsible */}
+                {showFilters && (
                 <aside className="filters-sidebar">
                     <div className="filters-header">
-                        <h3>🔍 Filters</h3>
-                    </div>
-
-                    {/* Search */}
-                    <div className="filter-group">
-                        <label>Search Items</label>
-                        <input
-                            type="text"
-                            placeholder="Search by name..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="filter-input"
-                        />
+                        <h3>Sort & Filter Options</h3>
                     </div>
 
                     {/* Rarity Filter */}
@@ -391,7 +408,7 @@ export const InventoryPage: React.FC = () => {
                                         className="filter-action-btn danger"
                                         style={{ marginTop: '0.5rem' }}
                                     >
-                                        🗑️ Delete Selected
+                                        <Trash2 size={16} /> Delete Selected
                                     </button>
                                 ) : (
                                     <button 
@@ -399,7 +416,7 @@ export const InventoryPage: React.FC = () => {
                                         className="filter-action-btn danger"
                                         style={{ marginTop: '0.5rem' }}
                                     >
-                                        🗑️ Permanent Delete
+                                        <Trash2 size={16} /> Permanent Delete
                                     </button>
                                 )}
                             </>
@@ -410,6 +427,7 @@ export const InventoryPage: React.FC = () => {
                         <small>💡 Showing {filteredAndSortedItems.length} of {(showDeleted ? deletedItems : inventory).length} items</small>
                     </div>
                 </aside>
+                )}
 
                 {/* Main Content */}
                 <div className="inventory-main-content">
@@ -420,8 +438,9 @@ export const InventoryPage: React.FC = () => {
                     <p>{showDeleted ? 'Items you delete will appear here.' : 'Try adjusting your filters or acquire new items.'}</p>
                 </div>
             ) : (
+                <>
                 <div className="inventory-grid">
-                    {filteredAndSortedItems.map((inventoryItem) => {
+                    {filteredAndSortedItems.slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE).map((inventoryItem) => {
                             const item = inventoryItem.Item;
                             if (!item) return null;
 
@@ -490,14 +509,14 @@ export const InventoryPage: React.FC = () => {
                                                     onClick={() => handleRestore(item.item_id)}
                                                     className="restore-btn"
                                                 >
-                                                    ↩️ Restore
+                                                    <RotateCcw size={16} /> Restore
                                                 </button>
                                                 <button 
                                                     onClick={() => handlePermanentDelete(item.item_id, item.name)}
                                                     className="permanent-delete-btn"
                                                     style={{ marginLeft: '8px' }}
                                                 >
-                                                    🗑️ Delete Forever
+                                                    <Trash2 size={16} /> Delete Forever
                                                 </button>
                                             </>
                                         ) : (
@@ -509,7 +528,7 @@ export const InventoryPage: React.FC = () => {
                                                     onClick={() => handleSoftDelete(item.item_id)}
                                                     className="delete-btn"
                                                 >
-                                                    🗑️ Delete
+                                                    <Trash2 size={16} /> Delete
                                                 </button>
                                             </>
                                         )}
@@ -518,8 +537,32 @@ export const InventoryPage: React.FC = () => {
                             );
                         })}
                     </div>
-                )
-            }
+                    
+                    {/* Pagination Controls */}
+                    {filteredAndSortedItems.length > ITEMS_PER_PAGE && (
+                        <div className="pagination-controls">
+                            <button 
+                                onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                                disabled={currentPage === 0}
+                                className="pagination-btn"
+                            >
+                                <ChevronLeft size={20} /> Previous
+                            </button>
+                            <span className="pagination-info">
+                                Page {currentPage + 1} of {Math.ceil(filteredAndSortedItems.length / ITEMS_PER_PAGE)}
+                                <span className="pagination-items"> ({filteredAndSortedItems.slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE).length} items)</span>
+                            </span>
+                            <button 
+                                onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredAndSortedItems.length / ITEMS_PER_PAGE) - 1, prev + 1))}
+                                disabled={currentPage >= Math.ceil(filteredAndSortedItems.length / ITEMS_PER_PAGE) - 1}
+                                className="pagination-btn"
+                            >
+                                Next <ChevronRight size={20} />
+                            </button>
+                        </div>
+                    )}
+                </>
+            )}
                 </div>
             </div>
         </div>

@@ -5,6 +5,8 @@ import { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
 import { useNavigate } from "react-router-dom"
 import progressAPI, { type UserProgress } from "../services/progressAPI"
+import { TrendingUp, CheckCircle, Clock, XCircle, Package, DollarSign, ShoppingCart, FileText, User, BarChart3, Users, Settings } from "lucide-react"
+import { AchievementsBadgesSlideshow } from "./AchievementsBadgesSlideshow"
 
 interface UserStats {
     tradesCompleted: number
@@ -115,26 +117,6 @@ export const Dashboard: React.FC = () => {
                         <h2>Welcome back, {user?.username}!</h2>
                         <p>Ready to make some trades?</p>
                     </div>
-                    
-                    <div className="level-section">
-                        <div className="level-badge">
-                            <span className="level-number">{stats.level}</span>
-                            <span className="level-text">Level</span>
-                        </div>
-                        
-                        <div className="experience-bar">
-                            <div className="exp-info">
-                                <span>Experience</span>
-                                <span>{stats.experience} / {stats.experience + stats.experienceToNext} XP</span>
-                            </div>
-                            <div className="exp-bar">
-                                <div 
-                                    className="exp-fill"
-                                    style={{ width: `${(stats.experience / (stats.experience + stats.experienceToNext)) * 100}%` }}
-                                ></div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -146,7 +128,7 @@ export const Dashboard: React.FC = () => {
                         <h3>Trading Statistics</h3>
                         <div className="stats-grid">
                             <div className="stat-card primary">
-                                <div className="stat-icon">📈</div>
+                                <div className="stat-icon"><TrendingUp size={48} /></div>
                                 <div className="stat-content">
                                     <h3>{stats.tradesCompleted}</h3>
                                     <p>Trades Completed</p>
@@ -154,7 +136,7 @@ export const Dashboard: React.FC = () => {
                             </div>
                             
                             <div className="stat-card success">
-                                <div className="stat-icon">✅</div>
+                                <div className="stat-icon"><CheckCircle size={48} /></div>
                                 <div className="stat-content">
                                     <h3>{stats.successRate}%</h3>
                                     <p>Success Rate</p>
@@ -162,7 +144,7 @@ export const Dashboard: React.FC = () => {
                             </div>
                             
                             <div className="stat-card warning">
-                                <div className="stat-icon">⏳</div>
+                                <div className="stat-icon"><Clock size={48} /></div>
                                 <div className="stat-content">
                                     <h3>{stats.tradesInProgress}</h3>
                                     <p>In Progress</p>
@@ -170,7 +152,7 @@ export const Dashboard: React.FC = () => {
                             </div>
                             
                             <div className="stat-card error">
-                                <div className="stat-icon">❌</div>
+                                <div className="stat-icon"><XCircle size={48} /></div>
                                 <div className="stat-content">
                                     <h3>{stats.tradesFailed}</h3>
                                     <p>Failed Trades</p>
@@ -178,7 +160,7 @@ export const Dashboard: React.FC = () => {
                             </div>
                             
                             <div className="stat-card info">
-                                <div className="stat-icon">📦</div>
+                                <div className="stat-icon"><Package size={48} /></div>
                                 <div className="stat-content">
                                     <h3>{stats.totalItemsTraded}</h3>
                                     <p>Items Traded</p>
@@ -186,7 +168,7 @@ export const Dashboard: React.FC = () => {
                             </div>
                             
                             <div className="stat-card money">
-                                <div className="stat-icon">💰</div>
+                                <div className="stat-icon"><DollarSign size={48} /></div>
                                 <div className="stat-content">
                                     <h3>${stats.totalValueTraded.toLocaleString()}</h3>
                                     <p>Total Value</p>
@@ -203,7 +185,7 @@ export const Dashboard: React.FC = () => {
                                 className="action-card"
                                 onClick={() => navigate('/trade')}
                             >
-                                <div className="action-icon">🛒</div>
+                                <div className="action-icon"><ShoppingCart size={56} /></div>
                                 <div className="action-content">
                                     <h4>Browse Trades</h4>
                                     <p>Find items to trade</p>
@@ -214,7 +196,7 @@ export const Dashboard: React.FC = () => {
                                 className="action-card"
                                 onClick={() => navigate('/trade-offers')}
                             >
-                                <div className="action-icon">📋</div>
+                                <div className="action-icon"><FileText size={56} /></div>
                                 <div className="action-content">
                                     <h4>My Offers</h4>
                                     <p>Manage trade offers</p>
@@ -225,7 +207,7 @@ export const Dashboard: React.FC = () => {
                                 className="action-card"
                                 onClick={() => navigate('/profile')}
                             >
-                                <div className="action-icon">👤</div>
+                                <div className="action-icon"><User size={56} /></div>
                                 <div className="action-content">
                                     <h4>Profile</h4>
                                     <p>Update your profile</p>
@@ -233,7 +215,7 @@ export const Dashboard: React.FC = () => {
                             </button>
                             
                             <button className="action-card">
-                                <div className="action-icon">📊</div>
+                                <div className="action-icon"><BarChart3 size={56} /></div>
                                 <div className="action-content">
                                     <h4>Analytics</h4>
                                     <p>View detailed stats</p>
@@ -249,7 +231,7 @@ export const Dashboard: React.FC = () => {
                             <h3>Admin Panel</h3>
                             <div className="admin-grid">
                                 <button className="admin-card">
-                                    <div className="admin-icon">👥</div>
+                                    <div className="admin-icon"><Users size={48} /></div>
                                     <div className="admin-content">
                                         <h4>Manage Users</h4>
                                         <p>User administration</p>
@@ -257,7 +239,7 @@ export const Dashboard: React.FC = () => {
                                 </button>
                                 
                                 <button className="admin-card">
-                                    <div className="admin-icon">⚙️</div>
+                                    <div className="admin-icon"><Settings size={48} /></div>
                                     <div className="admin-content">
                                         <h4>System Settings</h4>
                                         <p>Configure platform</p>
@@ -265,7 +247,7 @@ export const Dashboard: React.FC = () => {
                                 </button>
                                 
                                 <button className="admin-card">
-                                    <div className="admin-icon">📈</div>
+                                    <div className="admin-icon"><TrendingUp size={48} /></div>
                                     <div className="admin-content">
                                         <h4>Reports</h4>
                                         <p>Platform analytics</p>
@@ -315,37 +297,14 @@ export const Dashboard: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Badges Section */}
-                    <div className="badges-section">
-                        <div className="badges-header">
-                            <h3>🎖️ Badges</h3>
-                            <span className="badge-count">{earnedBadges.length}/{badges.length}</span>
-                        </div>
-                        
-                        <div className="badges-grid-sidebar">
-                            {badges
-                                .sort((a, b) => (b.earned ? 1 : 0) - (a.earned ? 1 : 0))
-                                .map((badge) => (
-                                <div 
-                                    key={badge.id}
-                                    className={`badge-item-sidebar ${badge.earned ? 'earned' : 'locked'}`}
-                                    onClick={() => setSelectedBadge(badge)}
-                                    style={{ borderColor: getRarityColor(badge.rarity) }}
-                                >
-                                    <div className="badge-icon-small">
-                                        <img src={badge.icon} alt={badge.name} />
-                                    </div>
-                                    <div className="badge-info-small">
-                                        <h4>{badge.name}</h4>
-                                        {badge.earned && badge.earnedDate && (
-                                            <p className="earned-date">Earned {new Date(badge.earnedDate).toLocaleDateString()}</p>
-                                        )}
-                                    </div>
-                                    {!badge.earned && <div className="badge-lock-small">🔒</div>}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                    {/* Achievements & Badges Slideshow */}
+                    <AchievementsBadgesSlideshow
+                        achievements={userProgress?.achievements || []}
+                        badges={badges}
+                        onAchievementClick={setSelectedAchievement}
+                        onBadgeClick={setSelectedBadge}
+                        getRarityColor={getRarityColor}
+                    />
                 </div>
             </div>
 

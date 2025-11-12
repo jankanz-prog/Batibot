@@ -7,6 +7,7 @@ import { authAPI } from "../services/authAPI"
 import type { ProfileUpdateRequest } from "../types/auth"
 import { WalletInstructionModal } from "./WalletInstructionModal"
 import { Core } from '@blaze-cardano/sdk'
+import '../styles/profile.css'
 
 export const ProfilePage: React.FC = () => {
     const { user, token, logout, updateUser } = useAuth()

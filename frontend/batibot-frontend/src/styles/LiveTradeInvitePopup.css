@@ -7,8 +7,8 @@
     width: 320px;
     background: var(--bg-secondary);
     border-radius: 12px;
-    border: 2px solid #667eea;
-    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+    border: 1px solid var(--border-primary);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--accent-primary);
     animation: slideIn 0.3s ease-out;
     z-index: 9999;
 }
@@ -26,15 +26,20 @@
 
 .invite-popup-header {
     padding: 1rem 1.5rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-primary);
     border-radius: 10px 10px 0 0;
-    color: white;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .invite-popup-header h3 {
     margin: 0;
     font-size: 1.1rem;
     font-weight: 600;
+    color: var(--text-primary);
+    font-family: 'Orbitron', sans-serif;
 }
 
 .invite-popup-body {
@@ -62,25 +67,31 @@
     font-weight: 600;
     font-size: 0.95rem;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 .invite-accept-btn {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: var(--success);
     color: white;
 }
 
 .invite-accept-btn:hover {
+    background: #059669;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
 .invite-decline-btn {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    background: var(--error);
     color: white;
 }
 
 .invite-decline-btn:hover {
+    background: #dc2626;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }

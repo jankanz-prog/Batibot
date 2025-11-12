@@ -12,6 +12,10 @@ export const AuthPage: React.FC = () => {
     return (
         <div className="auth-page">
             <div className="auth-container">
+                <div className="auth-logo">
+                    <h1>BATIBOT</h1>
+                    <p>Cross-Game Trading Platform</p>
+                </div>
                 {mode === "login" ? (
                     <LoginForm onSwitchToRegister={() => setMode("register")} />
                 ) : (

@@ -78,21 +78,32 @@
 
 .user-search {
     position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.user-search .search-icon {
+    position: absolute;
+    left: 0.75rem;
+    color: var(--text-tertiary);
+    pointer-events: none;
 }
 
 .search-input {
     width: 100%;
-    padding: 0.5rem;
-    border: 1px solid var(--border-color);
+    padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+    border: 1px solid var(--border-primary);
     border-radius: 6px;
     background: var(--bg-primary);
     color: var(--text-primary);
     font-size: 0.875rem;
+    transition: all 0.2s ease;
 }
 
 .search-input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .user-list-content {

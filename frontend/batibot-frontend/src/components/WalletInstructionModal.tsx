@@ -20,81 +20,86 @@ export const WalletInstructionModal: React.FC<WalletInstructionModalProps> = ({ 
                 </div>
 
                 <div className="modal-content">
-                    <div className="instruction-section">
-                        <h3>Step 1: Install Lace Wallet Extension</h3>
-                        <p>
-                            You need a Cardano wallet to connect to this application. We recommend Lace wallet
-                            for the best experience.
-                        </p>
-                        <a
-                            href="https://www.lace.io/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="wallet-link"
-                        >
-                            Download Lace Wallet →
-                        </a>
+                    {/* Steps Grid - Horizontal Layout */}
+                    <div className="steps-grid">
+                        <div className="step-card">
+                            <div className="step-number">1</div>
+                            <h3>Install Lace Wallet</h3>
+                            <p>Download and install the Lace wallet browser extension for the best Cardano experience.</p>
+                            <a
+                                href="https://www.lace.io/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="wallet-link"
+                            >
+                                Download Lace →
+                            </a>
+                        </div>
+
+                        <div className="step-card">
+                            <div className="step-number">2</div>
+                            <h3>Create Wallet</h3>
+                            <p>Set up your new wallet:</p>
+                            <ul className="step-list">
+                                <li>Click the Lace extension</li>
+                                <li>Choose "Create new wallet"</li>
+                                <li>Save recovery phrase securely</li>
+                                <li>Set a strong password</li>
+                            </ul>
+                        </div>
+
+                        <div className="step-card">
+                            <div className="step-number">3</div>
+                            <h3>Switch Network</h3>
+                            <p>Change to Preview testnet:</p>
+                            <ul className="step-list">
+                                <li>Open Lace wallet</li>
+                                <li>Go to Settings</li>
+                                <li>Select "Network"</li>
+                                <li>Switch to "Preview"</li>
+                            </ul>
+                        </div>
+
+                        <div className="step-card">
+                            <div className="step-number">4</div>
+                            <h3>Connect Wallet</h3>
+                            <p>Link your wallet to the app:</p>
+                            <ul className="step-list">
+                                <li>Return to this page</li>
+                                <li>Click "Connect Wallet"</li>
+                                <li>Select "Lace"</li>
+                                <li>Approve connection</li>
+                            </ul>
+                        </div>
                     </div>
 
-                    <div className="instruction-section">
-                        <h3>Step 2: Create a New Wallet</h3>
-                        <ol>
-                            <li>Click on the Lace extension icon in your browser</li>
-                            <li>Choose "Create a new wallet"</li>
-                            <li>Write down your recovery phrase (keep it safe!)</li>
-                            <li>Set a strong password</li>
-                            <li>Complete the wallet setup</li>
-                        </ol>
-                    </div>
+                    {/* Info Boxes - Full Width Below Steps */}
+                    <div className="info-boxes-grid">
+                        <div className="info-box">
+                            <div className="info-content">
+                                <h4>💡 Need Test ADA?</h4>
+                                <p>Get free test ADA from the Cardano Faucet for testing purposes.</p>
+                            </div>
+                            <a
+                                href="https://docs.cardano.org/cardano-testnet/tools/faucet"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="wallet-link"
+                            >
+                                Get Test ADA →
+                            </a>
+                        </div>
 
-                    <div className="instruction-section">
-                        <h3>Step 3: Switch to Preview Network</h3>
-                        <p>
-                            <strong>Important:</strong> This application uses the Cardano Preview testnet.
-                        </p>
-                        <ol>
-                            <li>Open your Lace wallet</li>
-                            <li>Go to Settings</li>
-                            <li>Select "Network"</li>
-                            <li>Switch to "Preview" network</li>
-                        </ol>
-                    </div>
-
-                    <div className="instruction-section">
-                        <h3>Step 4: Connect Your Wallet</h3>
-                        <p>
-                            Once your wallet is set up and on the Preview network:
-                        </p>
-                        <ol>
-                            <li>Come back to this page</li>
-                            <li>Click "Connect Wallet"</li>
-                            <li>Select "Lace" from the dropdown</li>
-                            <li>Approve the connection request</li>
-                        </ol>
-                    </div>
-
-                    <div className="instruction-section info-box">
-                        <h4>💡 Need Test ADA?</h4>
-                        <p>
-                            Since this is a testnet, you can get free test ADA from the Cardano Faucet:
-                        </p>
-                        <a
-                            href="https://docs.cardano.org/cardano-testnet/tools/faucet"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="wallet-link"
-                        >
-                            Get Test ADA →
-                        </a>
-                    </div>
-
-                    <div className="instruction-section warning-box">
-                        <h4>⚠️ Important Security Notes</h4>
-                        <ul>
-                            <li>Never share your recovery phrase with anyone</li>
-                            <li>This is a testnet - don't send real ADA to these addresses</li>
-                            <li>Always verify you're on the Preview network</li>
-                        </ul>
+                        <div className="warning-box">
+                            <div className="warning-content">
+                                <h4>⚠️ Important Security Notes</h4>
+                                <ul className="security-list">
+                                    <li>Never share your recovery phrase with anyone</li>
+                                    <li>This is testnet only - don't send real ADA to these addresses</li>
+                                    <li>Always verify you're on the Preview network before connecting</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

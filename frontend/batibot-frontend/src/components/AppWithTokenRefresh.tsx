@@ -6,6 +6,8 @@ import { Layout } from "./Layout"
 import { NotificationProvider } from "../context/NotificationContext"
 import { LiveTradeProvider } from "../context/LiveTradeContext"
 import { CardanoWalletProvider } from "../context/CardanoWalletContext"
+import { LandingPage } from "./LandingPage"
+import { AuthPage } from "./AuthPage"
 import { Dashboard } from "./Dashboard"
 import { ProfilePage } from "./ProfilePage"
 import { AchievementsPage } from "./AchievementsPage"
@@ -22,13 +24,20 @@ export const AppWithTokenRefresh: React.FC = () => {
 
     return (
         <Router>
-            <ProtectedRoute>
-                <CardanoWalletProvider>
-                    <NotificationProvider>
-                        <LiveTradeProvider>
-                            <Layout>
-                            <Routes>
-                                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<AuthPage />} />
+                <Route path="/register" element={<AuthPage />} />
+                
+                {/* Protected Routes */}
+                <Route path="/*" element={
+                    <ProtectedRoute>
+                        <CardanoWalletProvider>
+                            <NotificationProvider>
+                                <LiveTradeProvider>
+                                    <Layout>
+                                        <Routes>
                                 <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path="/inventory" element={<InventoryPage />} />
                                 <Route path="/items" element={<ItemsPage />} />
@@ -43,13 +52,15 @@ export const AppWithTokenRefresh: React.FC = () => {
                                 <Route path="/profile" element={<ProfilePage />} />
                                 <Route path="/profile/achievements" element={<AchievementsPage />} />
                                 <Route path="/notes" element={<NotesPage />} />
-                                <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                            </Routes>
-                            </Layout>
-                        </LiveTradeProvider>
-                    </NotificationProvider>
-                </CardanoWalletProvider>
-            </ProtectedRoute>
+                                            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                                        </Routes>
+                                    </Layout>
+                                </LiveTradeProvider>
+                            </NotificationProvider>
+                        </CardanoWalletProvider>
+                    </ProtectedRoute>
+                } />
+            </Routes>
         </Router>
     )
 }

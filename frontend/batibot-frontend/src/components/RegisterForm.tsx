@@ -106,14 +106,6 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="role">Role</label>
-                    <select id="role" name="role" value={formData.role} onChange={handleChange} disabled={loading}>
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </div>
-
-                <div className="form-group">
                     <label htmlFor="password">Password</label>
                     <input
                         type="password"

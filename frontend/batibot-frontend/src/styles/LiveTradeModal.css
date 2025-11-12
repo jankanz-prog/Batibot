@@ -45,32 +45,41 @@
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-primary);
     border-radius: 16px 16px 0 0;
-    color: white;
 }
 
 .live-trade-header h2 {
     margin: 0;
     font-size: 1.5rem;
     font-weight: 700;
+    color: var(--text-primary);
+    font-family: 'Orbitron', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .close-btn {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-secondary);
     width: 36px;
     height: 36px;
-    border-radius: 50%;
-    color: white;
-    font-size: 1.5rem;
+    border-radius: 6px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .close-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.1);
+    background: var(--error);
+    color: white;
+    border-color: var(--error);
+    transform: scale(1.05);
 }
 
 .live-trade-content {
@@ -89,13 +98,11 @@
 }
 
 .your-offer {
-    border-color: #10b981;
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.3);
+    border-color: var(--success);
 }
 
 .partner-offer {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.3);
+    border-color: var(--accent-primary);
 }
 
 .section-header {
@@ -115,12 +122,16 @@
 }
 
 .value-badge {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    color: white;
+    background: var(--bg-tertiary);
+    color: var(--warning);
     padding: 0.5rem 1rem;
+    border: 1px solid var(--border-secondary);
     border-radius: 20px;
     font-size: 0.9rem;
     font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .trade-items-grid {
@@ -191,19 +202,22 @@
 }
 
 .remove-item-btn {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    background: var(--error);
     border: none;
     width: 32px;
     height: 32px;
-    border-radius: 50%;
+    border-radius: 6px;
     color: white;
-    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .remove-item-btn:hover:not(:disabled) {
-    transform: scale(1.1);
+    background: #dc2626;
+    transform: scale(1.05);
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
 
@@ -218,6 +232,30 @@
     border-radius: 8px;
     border: 2px dashed var(--border-color);
     margin-bottom: 1rem;
+}
+
+.open-inventory-btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.open-inventory-btn:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .item-select {
@@ -248,16 +286,20 @@
 
 .add-item-btn {
     padding: 0.75rem 1.5rem;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: var(--success);
     color: white;
     border: none;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .add-item-btn:hover {
+    background: #059669;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
@@ -269,17 +311,22 @@
 .confirm-btn {
     width: 100%;
     padding: 1rem;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: var(--success);
     color: white;
     border: none;
     border-radius: 8px;
     font-size: 1.1rem;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 .confirm-btn:hover:not(:disabled) {
+    background: #059669;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
 }
@@ -292,12 +339,16 @@
 .confirmed-badge {
     width: 100%;
     padding: 1rem;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: var(--success);
     color: white;
     border-radius: 8px;
     text-align: center;
     font-weight: 700;
     font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 .waiting-badge {
@@ -308,13 +359,17 @@
     border-radius: 8px;
     text-align: center;
     font-weight: 600;
-    border: 2px dashed var(--border-color);
+    border: 2px dashed var(--border-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 .executing-trade {
     text-align: center;
     padding: 1.5rem;
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    background: var(--warning);
     color: white;
     font-size: 1.2rem;
     font-weight: 700;

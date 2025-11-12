@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { inventoryAPI } from "../services/itemsAPI"
 import { tradeAPI } from "../services/tradeAPI"
+import { User, Flag, Clock, DollarSign, Shield, Gamepad2, Check } from "lucide-react"
 
 interface TradeInventoryItem {
     id: string
@@ -89,14 +90,14 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
 
     if (!isOpen) return null
 
-    const getRarityGradient = (rarity: string) => {
+    const getRarityColor = (rarity: string) => {
         switch (rarity) {
-            case 'common': return 'linear-gradient(135deg, #b0c3d9 0%, #8fa7c4 100%)'
-            case 'uncommon': return 'linear-gradient(135deg, #5e98d9 0%, #4a7bc8 100%)'
-            case 'rare': return 'linear-gradient(135deg, #4b69ff 0%, #3d54cc 100%)'
-            case 'epic': return 'linear-gradient(135deg, #8847ff 0%, #6d38cc 100%)'
-            case 'legendary': return 'linear-gradient(135deg, #d2a679 0%, #b8956a 100%)'
-            default: return 'linear-gradient(135deg, #b0c3d9 0%, #8fa7c4 100%)'
+            case 'common': return '#9ca3af'
+            case 'uncommon': return '#10b981'
+            case 'rare': return '#3b82f6'
+            case 'epic': return '#a855f7'
+            case 'legendary': return '#f59e0b'
+            default: return '#9ca3af'
         }
     }
 
@@ -178,14 +179,14 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
                     <div className="target-user-section">
                         <div className="user-profile">
                             <div className="user-avatar">
-                                <div className="avatar-placeholder">👤</div>
+                                <User size={32} />
                             </div>
                             <div className="user-info">
                                 <h3>{targetUser}</h3>
                                 <p className="user-status">User</p>
                             </div>
                         </div>
-                        <button className="report-button">🚩 Report</button>
+                        <button className="report-button"><Flag size={16} /> Report</button>
                     </div>
 
                     {/* Trade Details */}
@@ -196,14 +197,17 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
                                 <span className="value">Items & stable items</span>
                             </div>
                             <div className="info-item">
+                                <Clock size={16} />
                                 <span className="label">Time Left:</span>
                                 <span className="value">3h 55m 27s</span>
                             </div>
                             <div className="info-item">
+                                <DollarSign size={16} />
                                 <span className="label">Item Value:</span>
                                 <span className="value">${Number(targetItemValue || 0).toFixed(2)}</span>
                             </div>
                             <div className="info-item">
+                                <Shield size={16} />
                                 <span className="label">Sniping Prevention:</span>
                                 <span className="value enabled">Enabled</span>
                             </div>
@@ -231,9 +235,9 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
                                     <div key={item.id} className="selected-item-card">
                                         <div 
                                             className="item-header"
-                                            style={{ background: getRarityGradient(item.rarity) }}
+                                            style={{ borderColor: getRarityColor(item.rarity) }}
                                         >
-                                            <div className="item-icon">🎮</div>
+                                            <Gamepad2 size={32} style={{ color: getRarityColor(item.rarity) }} />
                                         </div>
                                         <div className="item-info">
                                             <p className="item-name">{item.name}</p>
@@ -319,19 +323,19 @@ export const TradeOfferModal: React.FC<TradeOfferModalProps> = ({
                                     >
                                         <div 
                                             className="item-header"
-                                            style={{ background: getRarityGradient(item.rarity) }}
+                                            style={{ borderColor: getRarityColor(item.rarity) }}
                                         >
-                                            <div className="item-icon">🎮</div>
+                                            <Gamepad2 size={32} style={{ color: getRarityColor(item.rarity) }} />
                                             {item.quantity > 1 && (
                                                 <div className="item-quantity">{item.quantity}</div>
                                             )}
                                         </div>
                                         <div className="item-info">
                                             <p className="item-name">{item.name}</p>
-                                            <p className="item-rarity">{item.rarity}</p>
+                                            <p className="item-rarity" style={{ color: getRarityColor(item.rarity) }}>{item.rarity}</p>
                                             <p className="item-value">${Number(item.value || 0).toFixed(2)}</p>
                                         </div>
-                                        {isSelected && <div className="selected-indicator">✓</div>}
+                                        {isSelected && <div className="selected-indicator"><Check size={20} /></div>}
                                     </div>
                                 )
                             })
