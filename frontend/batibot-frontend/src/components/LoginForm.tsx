@@ -1,6 +1,7 @@
 
 import type React from "react"
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import type { LoginRequest } from "../types/auth"
 
@@ -10,6 +11,7 @@ interface LoginFormProps {
 
 export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
     const { login } = useAuth()
+    const navigate = useNavigate()
     const [formData, setFormData] = useState({
         loginField: "",
         password: "",
@@ -46,6 +48,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
             }
             
             await login(loginData)
+            
+            // Redirect to dashboard after successful login
+            navigate('/dashboard')
         } catch (err) {
             setError(err instanceof Error ? err.message : "Login failed")
         } finally {

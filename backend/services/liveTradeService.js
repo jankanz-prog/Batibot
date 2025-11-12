@@ -114,8 +114,10 @@ class LiveTradeService {
 
     // Handle trade invitation
     async handleTradeInvite(ws, message) {
-        const { targetUserId, targetUsername } = message;
+        const { targetUserId, targetUsername, listingItemId } = message;
         const tradeId = `${ws.userId}-${targetUserId}-${Date.now()}`;
+
+        console.log(`📋 Trade invite with listingItemId: ${listingItemId}`);
 
         // Check if target user is online
         const targetWs = this.clients.get(targetUserId);
@@ -127,7 +129,7 @@ class LiveTradeService {
             return;
         }
 
-        // Create trade session
+        // Create trade session with listing item info
         const tradeSession = {
             id: tradeId,
             initiator: { id: ws.userId, username: ws.username },
@@ -137,19 +139,21 @@ class LiveTradeService {
             initiatorConfirmed: false,
             targetConfirmed: false,
             status: 'pending',
+            listingItemId: listingItemId, // Store the marketplace listing item
             createdAt: Date.now()
         };
 
         this.activeTrades.set(tradeId, tradeSession);
 
-        // Send invite to target user
+        // Send invite to target user with listing item info
         targetWs.send(JSON.stringify({
             type: 'trade_invite_received',
             tradeId,
             from: {
                 id: ws.userId,
                 username: ws.username
-            }
+            },
+            listingItemId: listingItemId // Forward the listing item ID
         }));
 
         // Notify initiator
@@ -203,35 +207,38 @@ class LiveTradeService {
         const initiatorWs = this.clients.get(trade.initiator.id);
         const targetWs = this.clients.get(trade.target.id);
 
-        const tradeData = {
-            type: 'trade_started',
-            tradeId,
-            trade: {
-                id: tradeId,
-                partner: trade.target.id === ws.userId ? trade.initiator : trade.target,
-                yourItems: [],
-                partnerItems: [],
-                yourConfirmed: false,
-                partnerConfirmed: false
-            }
-        };
-
+        // Send to initiator (the one who sent the invite)
         if (initiatorWs) {
             initiatorWs.send(JSON.stringify({
-                ...tradeData,
+                type: 'trade_started',
+                tradeId,
                 trade: {
-                    ...tradeData.trade,
-                    partner: trade.target
+                    id: tradeId,
+                    partner: trade.target,
+                    yourItems: [],
+                    partnerItems: [],
+                    yourConfirmed: false,
+                    partnerConfirmed: false,
+                    listingItemId: trade.listingItemId, // Include listing item
+                    isInitiator: true // They are the initiator
                 }
             }));
         }
 
+        // Send to target (the one who accepted - usually the seller)
         if (targetWs) {
             targetWs.send(JSON.stringify({
-                ...tradeData,
+                type: 'trade_started',
+                tradeId,
                 trade: {
-                    ...tradeData.trade,
-                    partner: trade.initiator
+                    id: tradeId,
+                    partner: trade.initiator,
+                    yourItems: [],
+                    partnerItems: [],
+                    yourConfirmed: false,
+                    partnerConfirmed: false,
+                    listingItemId: trade.listingItemId, // Include listing item
+                    isInitiator: false // They are NOT the initiator (they're the seller)
                 }
             }));
         }

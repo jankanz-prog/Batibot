@@ -1,6 +1,7 @@
 
 import type React from "react"
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import type { RegisterRequest } from "../types/auth"
 
@@ -10,6 +11,7 @@ interface RegisterFormProps {
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
     const { register } = useAuth()
+    const navigate = useNavigate()
     const [formData, setFormData] = useState<RegisterRequest>({
         username: "",
         email: "",
@@ -60,8 +62,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
         try {
             await register(formData)
             setSuccess("Registration successful! Welcome to Batibot!")
-            // The ProtectedRoute will automatically redirect to dashboard
-            // since isAuthenticated will become true after register() completes
+            
+            // Redirect to dashboard after successful registration
+            setTimeout(() => {
+                navigate('/dashboard')
+            }, 500) // Small delay to show success message
         } catch (err) {
             setError(err instanceof Error ? err.message : "Registration failed")
         } finally {

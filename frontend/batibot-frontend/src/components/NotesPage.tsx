@@ -294,6 +294,51 @@ export const NotesPage: React.FC = () => {
                                 />
                             </div>
 
+                            <div className="form-group">
+                                <label>Color Group (Optional)</label>
+                                <div className="color-picker">
+                                    <button
+                                        type="button"
+                                        className="color-option color-default"
+                                        onClick={() => setNewNote(prev => ({ ...prev, content: prev.content.replace(/#(red|blue|green|yellow|purple|urgent|info|success|warning|idea|important|note|done|todo|creative)/g, '').trim() }))}
+                                        title="Default (No color)"
+                                    >
+                                        Default
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="color-option color-red"
+                                        onClick={() => setNewNote(prev => ({ ...prev, content: `${prev.content} #red`.trim() }))}
+                                        title="Red (#red, #urgent, #important)"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="color-option color-blue"
+                                        onClick={() => setNewNote(prev => ({ ...prev, content: `${prev.content} #blue`.trim() }))}
+                                        title="Blue (#blue, #info, #note)"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="color-option color-green"
+                                        onClick={() => setNewNote(prev => ({ ...prev, content: `${prev.content} #green`.trim() }))}
+                                        title="Green (#green, #success, #done)"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="color-option color-yellow"
+                                        onClick={() => setNewNote(prev => ({ ...prev, content: `${prev.content} #yellow`.trim() }))}
+                                        title="Yellow (#yellow, #warning, #todo)"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="color-option color-purple"
+                                        onClick={() => setNewNote(prev => ({ ...prev, content: `${prev.content} #purple`.trim() }))}
+                                        title="Purple (#purple, #idea, #creative)"
+                                    />
+                                </div>
+                                <small className="form-hint">Click a color to add a hashtag for color grouping</small>
+                            </div>
+
                             <div className="form-actions">
                                 <button
                                     type="button"
@@ -413,21 +458,13 @@ export const NotesPage: React.FC = () => {
                                 <h3 className="note-title" title={note.title}>
                                     {note.title}
                                 </h3>
-                                <div className="note-actions">
-                                    <button
-                                        className={`btn-icon favorite-btn ${note.favorited ? 'favorited' : ''}`}
-                                        onClick={() => handleToggleFavorite(note.id)}
-                                        title={note.favorited ? "Remove from favorites" : "Add to favorites"}
-                                    >
-                                        <Star size={18} fill={note.favorited ? "currentColor" : "none"} />
-                                    </button>
-                                    <button className="btn btn-secondary" onClick={() => startEdit(note)}>
-                                        <Edit2 size={16} /> Edit
-                                    </button>
-                                    <button className="btn btn-danger" onClick={() => setDeleteConfirm(note.id)}>
-                                        <Trash2 size={16} /> Delete
-                                    </button>
-                                </div>
+                                <button
+                                    className={`btn-icon favorite-btn ${note.favorited ? 'favorited' : ''}`}
+                                    onClick={() => handleToggleFavorite(note.id)}
+                                    title={note.favorited ? "Remove from favorites" : "Add to favorites"}
+                                >
+                                    <Star size={18} fill={note.favorited ? "currentColor" : "none"} />
+                                </button>
                             </div>
 
                             {note.content && (
@@ -444,10 +481,20 @@ export const NotesPage: React.FC = () => {
                             )}
 
                             <div className="note-footer">
-                                <small>Created: {formatDate(note.created_at)}</small>
-                                {note.updated_at !== note.created_at && (
-                                    <small>Updated: {formatDate(note.updated_at)}</small>
-                                )}
+                                <div className="note-dates">
+                                    <small>Created: {formatDate(note.created_at)}</small>
+                                    {note.updated_at !== note.created_at && (
+                                        <small>Updated: {formatDate(note.updated_at)}</small>
+                                    )}
+                                </div>
+                                <div className="note-actions">
+                                    <button className="btn btn-secondary btn-sm" onClick={() => startEdit(note)}>
+                                        <Edit2 size={14} /> Edit
+                                    </button>
+                                    <button className="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(note.id)}>
+                                        <Trash2 size={14} /> Delete
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         )

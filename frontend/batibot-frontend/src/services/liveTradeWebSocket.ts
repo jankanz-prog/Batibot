@@ -19,6 +19,8 @@ export interface LiveTrade {
     partnerItems: TradeItem[];
     yourConfirmed: boolean;
     partnerConfirmed: boolean;
+    listingItemId?: number; // The item that was listed in marketplace (for auto-population)
+    isInitiator?: boolean; // Whether you initiated the trade
 }
 
 export interface TradeInvite {
@@ -38,6 +40,8 @@ class LiveTradeWebSocket {
     private reconnectDelay = 1000;
     private messageHandlers: Map<string, MessageHandler[]> = new Map();
     private isManualClose = false;
+    private pendingTradeInfo: Map<string, { listingItemId?: number; isInitiator: boolean }> = new Map();
+    public lastSentListingItemId: number | undefined = undefined; // Store last sent listing item globally
 
     connect(token: string) {
         if (this.ws?.readyState === WebSocket.OPEN) {
@@ -119,12 +123,25 @@ class LiveTradeWebSocket {
         }
     }
 
-    // Send trade invite
-    sendTradeInvite(targetUserId: number, targetUsername: string) {
+    // Send trade invite with optional listing item info
+    sendTradeInvite(targetUserId: number, targetUsername: string, listingItemId?: number) {
+        const tradeKey = `${targetUserId}`; // Use targetUserId as key since we don't have tradeId yet
+        
+        // Store globally so receiver can access it
+        this.lastSentListingItemId = listingItemId;
+        console.log('💾 Stored lastSentListingItemId:', this.lastSentListingItemId);
+        
+        // Store the trade info for later use
+        this.pendingTradeInfo.set(tradeKey, {
+            listingItemId,
+            isInitiator: true // The sender is the initiator
+        });
+        
         this.send({
             type: 'trade_invite',
             targetUserId,
-            targetUsername
+            targetUsername,
+            listingItemId // Include the item that was listed in the marketplace
         });
     }
 
@@ -189,6 +206,16 @@ class LiveTradeWebSocket {
 
     isConnected(): boolean {
         return this.ws?.readyState === WebSocket.OPEN;
+    }
+
+    // Get trade info for a partner user ID
+    getTradeInfo(partnerUserId: number): { listingItemId?: number; isInitiator: boolean } | null {
+        return this.pendingTradeInfo.get(`${partnerUserId}`) || null;
+    }
+
+    // Clear trade info after trade starts
+    clearTradeInfo(partnerUserId: number) {
+        this.pendingTradeInfo.delete(`${partnerUserId}`);
     }
 }
 

@@ -44,11 +44,11 @@ export const AchievementsBadgesSlideshow: React.FC<Props> = ({
 }) => {
     const [showAchievements, setShowAchievements] = useState(true);
 
-    // Auto-switch every 5 seconds
+    // Auto-switch every 10 seconds
     useEffect(() => {
         const interval = setInterval(() => {
             setShowAchievements(prev => !prev);
-        }, 5000);
+        }, 10000);
         return () => clearInterval(interval);
     }, []);
 
@@ -83,7 +83,9 @@ export const AchievementsBadgesSlideshow: React.FC<Props> = ({
             <div className="slideshow-content">
                 {showAchievements ? (
                     <div className="achievements-scroll">
-                        {achievements.map((achievement) => (
+                        {achievements
+                            .sort((a, b) => (b.completed ? 1 : 0) - (a.completed ? 1 : 0))
+                            .map((achievement) => (
                             <div 
                                 key={achievement.id}
                                 className={`achievement-item ${achievement.completed ? 'completed light-up' : 'locked'}`}

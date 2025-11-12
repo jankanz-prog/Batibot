@@ -297,10 +297,24 @@
     flex-wrap: wrap;
 }
 
+.note-dates {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
 .note-footer small {
     color: var(--text-tertiary);
     font-size: 0.75rem;
     font-weight: 500;
+}
+
+.btn-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
 }
 
 .note-date {
@@ -386,6 +400,69 @@
     margin-bottom: 0.5rem;
     color: var(--text-primary);
     font-weight: 500;
+}
+
+.color-picker {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+}
+
+.color-option {
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--border-primary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.color-option.color-default {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    width: auto;
+    padding: 0 1rem;
+}
+
+.color-option.color-red {
+    background: #ef4444;
+    border-color: #dc2626;
+}
+
+.color-option.color-blue {
+    background: #3b82f6;
+    border-color: #2563eb;
+}
+
+.color-option.color-green {
+    background: #10b981;
+    border-color: #059669;
+}
+
+.color-option.color-yellow {
+    background: #f59e0b;
+    border-color: #d97706;
+}
+
+.color-option.color-purple {
+    background: #8b5cf6;
+    border-color: #7c3aed;
+}
+
+.form-hint {
+    display: block;
+    color: var(--text-tertiary);
+    font-size: 0.8125rem;
+    margin-top: 0.25rem;
 }
 
 .form-input,

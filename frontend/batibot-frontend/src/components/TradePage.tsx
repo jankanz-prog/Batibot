@@ -96,8 +96,9 @@ export const TradePage: React.FC = () => {
             return
         }
 
-        // Send live trade invite (backend will check if user is online)
-        liveTradeWS.sendTradeInvite(item.seller_id, item.seller)
+        // Send live trade invite with the marketplace listing item
+        // This will auto-populate the seller's side with their listed item
+        liveTradeWS.sendTradeInvite(item.seller_id, item.seller, item.item_id)
         alert(`✅ Live trade request sent to ${item.seller}!\n\nWaiting for them to accept...`)
     }
 

@@ -14,9 +14,32 @@ interface LiveTradeModalProps {
 export const LiveTradeModal: React.FC<LiveTradeModalProps> = ({ trade, onClose }) => {
     const [tradeState, setTradeState] = useState<LiveTrade>(trade);
     const [showInventoryModal, setShowInventoryModal] = useState(false);
+    const [listingItemAdded, setListingItemAdded] = useState(false);
 
     useEffect(() => {
+        console.log('🔍 LiveTradeModal mounted with trade:', trade);
+        console.log('🔍 listingItemId:', trade.listingItemId);
+        console.log('🔍 isInitiator:', trade.isInitiator);
+        console.log('🔍 listingItemAdded:', listingItemAdded);
+        
         setupTradeListeners();
+
+        // Auto-add the listing item if this user is NOT the initiator and has a listingItemId
+        // The listing creator (target) should have their item auto-added
+        if (trade.listingItemId && !trade.isInitiator && !listingItemAdded) {
+            console.log('✅ CONDITIONS MET! Auto-adding marketplace listing item:', trade.listingItemId);
+            // Small delay to ensure trade is fully initialized
+            setTimeout(() => {
+                console.log('🚀 Calling addItem with:', trade.id, trade.listingItemId, 1);
+                liveTradeWS.addItem(trade.id, trade.listingItemId!, 1);
+                setListingItemAdded(true);
+            }, 500);
+        } else {
+            console.log('❌ CONDITIONS NOT MET for auto-add:');
+            console.log('   - Has listingItemId?', !!trade.listingItemId);
+            console.log('   - Is NOT initiator?', !trade.isInitiator);
+            console.log('   - Not already added?', !listingItemAdded);
+        }
 
         return () => {
             liveTradeWS.off('trade_update', handleTradeUpdate);
@@ -94,6 +117,11 @@ export const LiveTradeModal: React.FC<LiveTradeModalProps> = ({ trade, onClose }
                                 <DollarSign size={16} style={{ display: 'inline' }} /> {getTotalValue(tradeState.yourItems)}
                             </span>
                         </div>
+                        {trade.listingItemId && !trade.isInitiator && (
+                            <div className="listing-info-badge">
+                                📋 Your marketplace listing item is auto-added
+                            </div>
+                        )}
 
                         <div className="trade-items-grid">
                             {tradeState.yourItems.length === 0 ? (
