@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../context/NotificationContext';
+import { Bell, MessageSquare, Gift, Handshake, Scale, Settings, Megaphone, X, CheckCheck } from 'lucide-react';
 import '../styles/NotificationBell.css';
 
 export const NotificationBell: React.FC = () => {
@@ -61,19 +62,20 @@ export const NotificationBell: React.FC = () => {
     };
 
     const getNotificationIcon = (type: string) => {
+        const iconProps = { size: 20 };
         switch (type) {
             case 'Chat':
-                return '💬';
+                return <MessageSquare {...iconProps} />;
             case 'ItemDrop':
-                return '🎁';
+                return <Gift {...iconProps} />;
             case 'Trade':
-                return '🤝';
+                return <Handshake {...iconProps} />;
             case 'Auction':
-                return '⚖️';
+                return <Scale {...iconProps} />;
             case 'System':
-                return '⚙️';
+                return <Settings {...iconProps} />;
             default:
-                return '📢';
+                return <Megaphone {...iconProps} />;
         }
     };
 
@@ -103,7 +105,7 @@ export const NotificationBell: React.FC = () => {
                 onClick={() => setIsOpen(!isOpen)}
                 title="Notifications"
             >
-                🔔
+                <Bell size={20} />
                 {unreadCount > 0 && (
                     <span className="notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
                 )}
@@ -118,7 +120,7 @@ export const NotificationBell: React.FC = () => {
                                 className="mark-all-read-btn"
                                 onClick={handleMarkAllRead}
                             >
-                                Mark all read
+                                <CheckCheck size={16} /> Mark all read
                             </button>
                         )}
                     </div>
@@ -150,7 +152,7 @@ export const NotificationBell: React.FC = () => {
                                         onClick={(e) => handleDelete(notification.notification_id, e)}
                                         title="Delete"
                                     >
-                                        ×
+                                        <X size={16} />
                                     </button>
                                 </div>
                             ))

@@ -1,10 +1,9 @@
 // components/LiveTradeModal.tsx
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { inventoryAPI } from '../services/itemsAPI';
-import type { InventoryItem } from '../types/items';
 import { liveTradeWS } from '../services/liveTradeWebSocket';
 import type { TradeItem, LiveTrade } from '../services/liveTradeWebSocket';
+import { Handshake, Send, Inbox, DollarSign, X, CheckCircle, Clock, Package } from 'lucide-react';
+import { LiveTradeInventoryModal } from './LiveTradeInventoryModal';
 import '../styles/LiveTradeModal.css';
 
 interface LiveTradeModalProps {
@@ -13,16 +12,34 @@ interface LiveTradeModalProps {
 }
 
 export const LiveTradeModal: React.FC<LiveTradeModalProps> = ({ trade, onClose }) => {
-    const { token } = useAuth();
-    const [inventory, setInventory] = useState<InventoryItem[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
-    const [quantity, setQuantity] = useState(1);
     const [tradeState, setTradeState] = useState<LiveTrade>(trade);
+    const [showInventoryModal, setShowInventoryModal] = useState(false);
+    const [listingItemAdded, setListingItemAdded] = useState(false);
 
     useEffect(() => {
-        loadInventory();
+        console.log('🔍 LiveTradeModal mounted with trade:', trade);
+        console.log('🔍 listingItemId:', trade.listingItemId);
+        console.log('🔍 isInitiator:', trade.isInitiator);
+        console.log('🔍 listingItemAdded:', listingItemAdded);
+        
         setupTradeListeners();
+
+        // Auto-add the listing item if this user is NOT the initiator and has a listingItemId
+        // The listing creator (target) should have their item auto-added
+        if (trade.listingItemId && !trade.isInitiator && !listingItemAdded) {
+            console.log('✅ CONDITIONS MET! Auto-adding marketplace listing item:', trade.listingItemId);
+            // Small delay to ensure trade is fully initialized
+            setTimeout(() => {
+                console.log('🚀 Calling addItem with:', trade.id, trade.listingItemId, 1);
+                liveTradeWS.addItem(trade.id, trade.listingItemId!, 1);
+                setListingItemAdded(true);
+            }, 500);
+        } else {
+            console.log('❌ CONDITIONS NOT MET for auto-add:');
+            console.log('   - Has listingItemId?', !!trade.listingItemId);
+            console.log('   - Is NOT initiator?', !trade.isInitiator);
+            console.log('   - Not already added?', !listingItemAdded);
+        }
 
         return () => {
             liveTradeWS.off('trade_update', handleTradeUpdate);
@@ -63,30 +80,6 @@ export const LiveTradeModal: React.FC<LiveTradeModalProps> = ({ trade, onClose }
         alert('❌ Trade failed: ' + data.message);
     };
 
-    const loadInventory = async () => {
-        if (!token) return;
-
-        try {
-            setLoading(true);
-            const response = await inventoryAPI.getInventory(token);
-            if (response.success && response.data) {
-                setInventory(response.data.filter(item => item.Item?.is_tradeable));
-            }
-        } catch (err) {
-            console.error('Failed to load inventory:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleAddItem = () => {
-        if (!selectedItem || quantity <= 0) return;
-
-        liveTradeWS.addItem(trade.id, selectedItem.Item!.item_id, quantity);
-        setSelectedItem(null);
-        setQuantity(1);
-    };
-
     const handleRemoveItem = (itemId: number) => {
         liveTradeWS.removeItem(trade.id, itemId);
     };
@@ -111,19 +104,24 @@ export const LiveTradeModal: React.FC<LiveTradeModalProps> = ({ trade, onClose }
         <div className="live-trade-modal-overlay" onClick={handleCancel}>
             <div className="live-trade-modal" onClick={(e) => e.stopPropagation()}>
                 <div className="live-trade-header">
-                    <h2>🤝 Live Trade with {trade.partner.username}</h2>
-                    <button onClick={handleCancel} className="close-btn">✕</button>
+                    <h2><Handshake size={24} style={{ display: 'inline', marginRight: '0.5rem' }} />Live Trade with {trade.partner.username}</h2>
+                    <button onClick={handleCancel} className="close-btn"><X size={20} /></button>
                 </div>
 
                 <div className="live-trade-content">
                     {/* Your Offer Section */}
                     <div className="trade-offer-section your-offer">
                         <div className="section-header">
-                            <h3>📤 Your Offer</h3>
+                            <h3><Send size={20} style={{ display: 'inline', marginRight: '0.5rem' }} />Your Offer</h3>
                             <span className="value-badge">
-                                💰 {getTotalValue(tradeState.yourItems)}
+                                <DollarSign size={16} style={{ display: 'inline' }} /> {getTotalValue(tradeState.yourItems)}
                             </span>
                         </div>
+                        {trade.listingItemId && !trade.isInitiator && (
+                            <div className="listing-info-badge">
+                                📋 Your marketplace listing item is auto-added
+                            </div>
+                        )}
 
                         <div className="trade-items-grid">
                             {tradeState.yourItems.length === 0 ? (
@@ -136,7 +134,7 @@ export const LiveTradeModal: React.FC<LiveTradeModalProps> = ({ trade, onClose }
                                         {item.image_url ? (
                                             <img src={item.image_url} alt={item.name} className="item-img" />
                                         ) : (
-                                            <div className="item-img placeholder">📦</div>
+                                            <div className="item-img placeholder"><Package size={32} /></div>
                                         )}
                                         <div className="item-info">
                                             <p className="item-name">{item.name}</p>
@@ -147,7 +145,7 @@ export const LiveTradeModal: React.FC<LiveTradeModalProps> = ({ trade, onClose }
                                             className="remove-item-btn"
                                             disabled={tradeState.yourConfirmed}
                                         >
-                                            ✕
+                                            <X size={16} />
                                         </button>
                                     </div>
                                 ))
@@ -157,52 +155,27 @@ export const LiveTradeModal: React.FC<LiveTradeModalProps> = ({ trade, onClose }
                         {/* Add Item Controls */}
                         {!tradeState.yourConfirmed && (
                             <div className="add-item-section">
-                                <select
-                                    value={selectedItem?.inventory_id || ''}
-                                    onChange={(e) => {
-                                        const item = inventory.find(i => i.inventory_id === parseInt(e.target.value));
-                                        setSelectedItem(item || null);
-                                        setQuantity(1);
-                                    }}
-                                    className="item-select"
+                                <button 
+                                    className="open-inventory-btn"
+                                    onClick={() => setShowInventoryModal(true)}
                                 >
-                                    <option value="">Select an item...</option>
-                                    {inventory.map((item) => (
-                                        <option key={item.inventory_id} value={item.inventory_id}>
-                                            {item.Item?.name} (×{item.quantity})
-                                        </option>
-                                    ))}
-                                </select>
-
-                                {selectedItem && (
-                                    <div className="quantity-input-group">
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            max={selectedItem.quantity}
-                                            value={quantity}
-                                            onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                                            className="quantity-input"
-                                        />
-                                        <button onClick={handleAddItem} className="add-item-btn">
-                                            ➕ Add
-                                        </button>
-                                    </div>
-                                )}
+                                    <Package size={18} />
+                                    Select Items from Inventory
+                                </button>
                             </div>
                         )}
 
                         {/* Confirmation Status */}
                         <div className="confirmation-status">
                             {tradeState.yourConfirmed ? (
-                                <div className="confirmed-badge">✅ You confirmed</div>
+                                <div className="confirmed-badge"><CheckCircle size={16} /> You confirmed</div>
                             ) : (
                                 <button
                                     onClick={handleConfirm}
                                     className="confirm-btn"
                                     disabled={tradeState.yourItems.length === 0}
                                 >
-                                    ✅ Confirm Trade
+                                    <CheckCircle size={16} /> Confirm Trade
                                 </button>
                             )}
                         </div>
@@ -211,9 +184,9 @@ export const LiveTradeModal: React.FC<LiveTradeModalProps> = ({ trade, onClose }
                     {/* Partner's Offer Section */}
                     <div className="trade-offer-section partner-offer">
                         <div className="section-header">
-                            <h3>📥 {trade.partner.username}'s Offer</h3>
+                            <h3><Inbox size={20} style={{ display: 'inline', marginRight: '0.5rem' }} />{trade.partner.username}'s Offer</h3>
                             <span className="value-badge">
-                                💰 {getTotalValue(tradeState.partnerItems)}
+                                <DollarSign size={16} style={{ display: 'inline' }} /> {getTotalValue(tradeState.partnerItems)}
                             </span>
                         </div>
 
@@ -242,9 +215,9 @@ export const LiveTradeModal: React.FC<LiveTradeModalProps> = ({ trade, onClose }
                         {/* Partner Confirmation Status */}
                         <div className="confirmation-status">
                             {tradeState.partnerConfirmed ? (
-                                <div className="confirmed-badge">✅ {trade.partner.username} confirmed</div>
+                                <div className="confirmed-badge"><CheckCircle size={16} /> {trade.partner.username} confirmed</div>
                             ) : (
-                                <div className="waiting-badge">⏳ Waiting for confirmation...</div>
+                                <div className="waiting-badge"><Clock size={16} /> Waiting for confirmation...</div>
                             )}
                         </div>
                     </div>
@@ -257,6 +230,19 @@ export const LiveTradeModal: React.FC<LiveTradeModalProps> = ({ trade, onClose }
                     </div>
                 )}
             </div>
+
+            {/* Inventory Selection Modal */}
+            <LiveTradeInventoryModal
+                isOpen={showInventoryModal}
+                onClose={() => setShowInventoryModal(false)}
+                onAddItem={(item, qty) => {
+                    // Directly add the item without relying on state
+                    if (item.Item) {
+                        liveTradeWS.addItem(trade.id, item.Item.item_id, qty);
+                    }
+                    setShowInventoryModal(false);
+                }}
+            />
         </div>
     );
 };

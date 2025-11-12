@@ -1,11 +1,13 @@
 import type React from "react"
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { useCardanoWallet } from "../context/CardanoWalletContext"
 import { authAPI } from "../services/authAPI"
 import type { ProfileUpdateRequest } from "../types/auth"
 import { WalletInstructionModal } from "./WalletInstructionModal"
 import { Core } from '@blaze-cardano/sdk'
+import '../styles/profile.css'
 
 export const ProfilePage: React.FC = () => {
     const { user, token, logout, updateUser } = useAuth()
@@ -17,6 +19,7 @@ export const ProfilePage: React.FC = () => {
         connectWallet, 
         disconnectWallet 
     } = useCardanoWallet()
+    const navigate = useNavigate()
     const [isEditing, setIsEditing] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
@@ -450,6 +453,12 @@ export const ProfilePage: React.FC = () => {
                 <div className="info-card">
                     <h3>Account Actions</h3>
                     <div className="quick-actions">
+                        <button
+                            onClick={() => navigate('/profile/achievements')}
+                            className="action-button achievements-link"
+                        >
+                            🏆 View Achievements
+                        </button>
                         <button
                             onClick={() => {
                                 /* Add change password functionality */

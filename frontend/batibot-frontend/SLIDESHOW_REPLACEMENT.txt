@@ -1,0 +1,10 @@
+Replace lines 310-381 in Dashboard.tsx with:
+
+                    {/* Achievements & Badges Slideshow */}
+                    <AchievementsBadgesSlideshow
+                        achievements={userProgress?.achievements || []}
+                        badges={badges}
+                        onAchievementClick={setSelectedAchievement}
+                        onBadgeClick={setSelectedBadge}
+                        getRarityColor={getRarityColor}
+                    />

@@ -69,6 +69,30 @@ export const LiveTradeProvider: React.FC<LiveTradeProviderProps> = ({ children }
 
     const handleTradeInviteReceived = useCallback((data: any) => {
         console.log('📨 Trade invite received:', data);
+        console.log('📨 From user ID:', data.from.id);
+        console.log('📨 Listing item ID from data:', data.listingItemId);
+        console.log('📨 Last sent listing item:', liveTradeWS.lastSentListingItemId);
+        
+        // IMPORTANT: When receiving an invite, we need to mark OURSELVES as non-initiator
+        // But we store it using the OTHER person's ID as the key (for lookup later)
+        const fromUserId = data.from.id;
+        
+        // Use lastSentListingItemId as fallback since backend doesn't forward it
+        const listingItemId = data.listingItemId || liveTradeWS.lastSentListingItemId;
+        
+        // Store trade info for the receiver (NOT initiator)
+        const tradeKey = `${fromUserId}`;
+        console.log('📨 Storing trade info with key:', tradeKey);
+        (liveTradeWS as any).pendingTradeInfo.set(tradeKey, {
+            listingItemId: listingItemId,
+            isInitiator: false // WE (the receiver) are NOT the initiator
+        });
+        
+        console.log('📨 Stored trade info:', (liveTradeWS as any).pendingTradeInfo.get(tradeKey));
+        
+        // Clear the global storage after using it
+        liveTradeWS.lastSentListingItemId = undefined;
+        
         setPendingInvite({
             tradeId: data.tradeId,
             from: data.from
@@ -89,6 +113,10 @@ export const LiveTradeProvider: React.FC<LiveTradeProviderProps> = ({ children }
 
     const handleTradeStarted = useCallback((data: any) => {
         console.log('🤝 Trade started:', data);
+        console.log('📋 listingItemId from backend:', data.trade.listingItemId);
+        console.log('📋 isInitiator from backend:', data.trade.isInitiator);
+        
+        // Backend now sends listingItemId and isInitiator directly
         setActiveTrade(data.trade);
         setPendingInvite(null);
     }, []);

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { chatAPI } from '../../services/chatAPI';
+import { MessageSquare, Search, Globe } from 'lucide-react';
 import type { UserListProps, ChatUser } from '../../types/chat';
 
 export const UserList: React.FC<UserListProps> = ({
@@ -115,8 +116,9 @@ export const UserList: React.FC<UserListProps> = ({
     return (
         <div className="user-list">
             <div className="user-list-header">
-                <h3>💬 Chats</h3>
+                <h3><MessageSquare size={20} style={{ display: 'inline', marginRight: '0.5rem' }} />Chats</h3>
                 <div className="user-search">
+                    <Search size={18} className="search-icon" />
                     <input
                         type="text"
                         placeholder="Search users..."
@@ -134,7 +136,7 @@ export const UserList: React.FC<UserListProps> = ({
                     onClick={() => onChatSelect('global')}
                 >
                     <div className="user-avatar global-avatar">
-                        🌍
+                        <Globe size={24} />
                     </div>
                     <div className="user-info">
                         <div className="user-name">Global Chat</div>

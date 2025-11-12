@@ -10,6 +10,7 @@ import "./styles/trade-offers.css"
 import "./styles/dashboard.css"
 import "./styles/items.css"
 import "./styles/chat.css"
+import "./styles/achievements.css"
 
 
 const App: React.FC = () => {
