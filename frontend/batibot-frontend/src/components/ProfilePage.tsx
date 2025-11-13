@@ -457,7 +457,7 @@ export const ProfilePage: React.FC = () => {
                             onClick={() => navigate('/profile/achievements')}
                             className="action-button achievements-link"
                         >
-                            🏆 View Achievements
+                            View Achievements
                         </button>
                         <button
                             onClick={() => {

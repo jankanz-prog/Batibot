@@ -133,6 +133,19 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                                 </button>
                             </nav>
 
+                            {user.wallet_address && (
+                                <div className="header-wallet-balance">
+                                    <Wallet size={16} />
+                                    <span className="balance-amount">
+                                        {isConnected ? (
+                                            walletBalance ? `${walletBalance} ADA` : '...'
+                                        ) : (
+                                            'Not connected'
+                                        )}
+                                    </span>
+                                </div>
+                            )}
+
                             <NotificationBell />
 
                             <div className="profile-dropdown-container" ref={dropdownRef}>
@@ -159,28 +172,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                                             <span className="dropdown-username">{user.username}</span>
                                             {isAdmin && <span className="admin-badge">Admin</span>}
                                         </div>
-                                        
-                                        {user.wallet_address && (
-                                            <div className="dropdown-wallet-info">
-                                                <div className="wallet-balance-item">
-                                                    <span className="wallet-label"><Wallet size={16} style={{ display: 'inline', marginRight: '0.5rem' }} />Wallet Balance:</span>
-                                                    <span className="wallet-balance">
-                                                        {isConnected ? (
-                                                            walletBalance ? `${walletBalance} ADA` : 'Loading...'
-                                                        ) : (
-                                                            <span className="wallet-disconnected-hint">
-                                                                Not connected
-                                                                <small style={{ display: 'block', fontSize: '0.75rem', marginTop: '0.25rem' }}>
-                                                                    Go to Profile to reconnect
-                                                                </small>
-                                                            </span>
-                                                        )}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <div className="dropdown-divider" />
 
                                         <button className="dropdown-item" onClick={navigateToProfile}>
                                             <UserIcon size={16} style={{ marginRight: '0.5rem' }} /> View Profile
@@ -211,6 +202,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <div className="footer-section">
                         <h4>About Us</h4>
                         <p>Batibot is a cross-game item trading platform for gamers worldwide.</p>
+                        <div className="team-members">
+                            <p><strong>Development Team:</strong></p>
+                            <p>Magtatoc, Mark Andrew</p>
+                            <p>Digodon, Keith Zancy</p>
+                            <p>Obdos, Darryl</p>
+                            <p>Pabillon, Dayne</p>
+                            <p>Gadiane, Jhen Karl</p>
+                        </div>
                     </div>
                     <div className="footer-section">
                         <h4>Quick Links</h4>
