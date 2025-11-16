@@ -107,6 +107,39 @@
     color: var(--text-secondary);
 }
 
+/* Header Profile Picture */
+.header-profile-picture {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--border-secondary);
+    background: var(--bg-tertiary);
+    flex-shrink: 0;
+}
+
+.header-profile-picture img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.header-profile-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    background: var(--accent-primary);
+}
+
 .welcome-text strong {
     color: var(--text-primary);
     font-weight: 600;
@@ -295,6 +328,21 @@
 
 .footer-section a:hover {
     color: var(--accent-primary);
+}
+
+.team-members {
+    margin-top: 1rem;
+}
+
+.team-members p {
+    margin: 0.25rem 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.team-members p strong {
+    color: var(--text-primary);
+    font-weight: 600;
 }
 
 .footer-bottom {
