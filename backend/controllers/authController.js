@@ -317,6 +317,23 @@ const updateProfile = async (req, res) => {
         const userId = req.user.id;
         const { username, email, wallet_address, profile_picture } = req.body;
 
+        // Check if wallet_address is already used by another user
+        if (wallet_address) {
+            const existingWallet = await User.findOne({
+                where: {
+                    wallet_address: wallet_address,
+                    id: { [Op.ne]: userId } // Not equal to current user
+                }
+            });
+
+            if (existingWallet) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'This wallet address is already connected to another account. Each wallet can only be used by one user.'
+                });
+            }
+        }
+
         // Update user data
         const updateData = {};
         if (username) updateData.username = username;

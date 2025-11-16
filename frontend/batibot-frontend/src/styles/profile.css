@@ -1,11 +1,30 @@
 /* Profile Page Styling */
+
+/* 2-Column Grid Layout */
+.profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.profile-info-card {
+    grid-row: span 2;
+}
+
+.side-column {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
 .dashboard .info-card {
     background: var(--bg-secondary);
     border: 1px solid var(--border-primary);
     border-radius: 12px;
     padding: 2rem;
-    margin-bottom: 2rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    margin-bottom: 0;
 }
 
 .dashboard .info-card h3 {
@@ -263,7 +282,34 @@
     font-weight: 500;
 }
 
+/* Transaction History Container - Full Width */
+.transaction-history-container {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 2rem;
+}
+
+.transaction-history-container .transaction-history {
+    width: 100%;
+}
+
 /* Responsive Design */
+@media (max-width: 968px) {
+    /* Stack grid on tablet and mobile */
+    .profile-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .profile-info-card {
+        grid-row: span 1;
+    }
+
+    .side-column {
+        gap: 2rem;
+    }
+}
+
 @media (max-width: 768px) {
     .dashboard .info-card {
         padding: 1.5rem;

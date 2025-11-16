@@ -6,6 +6,9 @@ import { useCardanoWallet } from "../context/CardanoWalletContext"
 import { authAPI } from "../services/authAPI"
 import type { ProfileUpdateRequest } from "../types/auth"
 import { WalletInstructionModal } from "./WalletInstructionModal"
+import { SendTransactionModal } from "./SendTransactionModal"
+import { TransactionHistory } from "./TransactionHistory"
+import { WalletMismatchModal } from "./WalletMismatchModal"
 import { Core } from '@blaze-cardano/sdk'
 import '../styles/profile.css'
 
@@ -25,6 +28,8 @@ export const ProfilePage: React.FC = () => {
     const [error, setError] = useState("")
     const [success, setSuccess] = useState("")
     const [showInstructionModal, setShowInstructionModal] = useState(false)
+    const [showSendModal, setShowSendModal] = useState(false)
+    const [showMismatchModal, setShowMismatchModal] = useState(false)
     const [selectedWalletName, setSelectedWalletName] = useState<string>("")
     const [formData, setFormData] = useState({
         username: user?.username || "",
@@ -49,6 +54,18 @@ export const ProfilePage: React.FC = () => {
             setPreviewImage(imageUrl)
         }
     }, [user])
+
+    // Check for wallet mismatch
+    useEffect(() => {
+        if (user?.wallet_address && isConnected && walletAddress) {
+            // Compare saved wallet address with connected wallet address
+            if (user.wallet_address !== walletAddress) {
+                setShowMismatchModal(true)
+            } else {
+                setShowMismatchModal(false)
+            }
+        }
+    }, [user?.wallet_address, isConnected, walletAddress])
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
@@ -166,6 +183,12 @@ export const ProfilePage: React.FC = () => {
         setSuccess("")
     }
 
+    const handleMismatchDisconnect = () => {
+        disconnectWallet()
+        setShowMismatchModal(false)
+        setSuccess("Wallet disconnected. Please connect the correct wallet or choose a different one.")
+    }
+
     const handleConnectWallet = async () => {
         if (availableWallets.length === 0) {
             setShowInstructionModal(true)
@@ -189,16 +212,24 @@ export const ProfilePage: React.FC = () => {
                     
                     // Only save if it's different from saved address
                     if (user?.wallet_address !== bech32Address) {
-                        // Update profile with wallet address
-                        await authAPI.updateProfile({ wallet_address: bech32Address }, token!)
-                        
-                        // Update user context
-                        if (user) {
-                            updateUser({ ...user, wallet_address: bech32Address })
+                        try {
+                            // Update profile with wallet address
+                            await authAPI.updateProfile({ wallet_address: bech32Address }, token!)
+                            
+                            // Update user context
+                            if (user) {
+                                updateUser({ ...user, wallet_address: bech32Address })
+                            }
+                            setSuccess("Wallet connected successfully! Balance will update shortly.")
+                        } catch (apiError: any) {
+                            // Disconnect wallet if it's already used by another user
+                            disconnectWallet()
+                            setError(apiError.message || "This wallet is already in use by another account.")
+                            return
                         }
+                    } else {
+                        setSuccess("Wallet connected successfully! Balance will update shortly.")
                     }
-                    
-                    setSuccess("Wallet connected successfully! Balance will update shortly.")
                 }
             }, 500)
         } catch (err) {
@@ -248,8 +279,8 @@ export const ProfilePage: React.FC = () => {
                 <p>Manage your account information</p>
             </div>
 
-            <div className="dashboard-content">
-                <div className="info-card">
+            <div className="dashboard-content profile-grid">
+                <div className="info-card profile-info-card">
                     <h3>Profile Information</h3>
 
                     {error && <div className="error-message">{error}</div>}
@@ -450,33 +481,79 @@ export const ProfilePage: React.FC = () => {
                     </form>
                 </div>
 
-                <div className="info-card">
-                    <h3>Account Actions</h3>
-                    <div className="quick-actions">
-                        <button
-                            onClick={() => navigate('/profile/achievements')}
-                            className="action-button achievements-link"
-                        >
-                            View Achievements
-                        </button>
-                        <button
-                            onClick={() => {
-                                /* Add change password functionality */
-                            }}
-                            className="action-button"
-                        >
-                            Change Password
-                        </button>
-                        <button onClick={logout} className="action-button" style={{ borderColor: "#dc3545", color: "#dc3545" }}>
-                            Logout
-                        </button>
+                <div className="side-column">
+                    <div className="info-card">
+                        <h3>Account Actions</h3>
+                        <div className="quick-actions">
+                            <button
+                                onClick={() => navigate('/profile/achievements')}
+                                className="action-button achievements-link"
+                            >
+                                View Achievements
+                            </button>
+                            <button
+                                onClick={() => {
+                                    /* Add change password functionality */
+                                }}
+                                className="action-button"
+                            >
+                                Change Password
+                            </button>
+                            <button onClick={logout} className="action-button" style={{ borderColor: "#dc3545", color: "#dc3545" }}>
+                                Logout
+                            </button>
+                        </div>
                     </div>
+
+                    {/* Cardano Wallet Actions */}
+                    {user?.wallet_address && isConnected && (
+                        <div className="info-card wallet-actions-card">
+                            <h3>Wallet Actions</h3>
+                            <div className="quick-actions">
+                                <button
+                                    onClick={() => setShowSendModal(true)}
+                                    className="action-button"
+                                    style={{ 
+                                        borderColor: "var(--accent-primary)", 
+                                        color: "var(--accent-primary)",
+                                        fontWeight: 600
+                                    }}
+                                >
+                                    Send ADA
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
+
+            {/* Transaction History - Full Width */}
+            {user?.wallet_address && (
+                <div className="transaction-history-container">
+                    <TransactionHistory walletAddress={user.wallet_address} />
+                </div>
+            )}
 
             <WalletInstructionModal 
                 isOpen={showInstructionModal} 
                 onClose={() => setShowInstructionModal(false)} 
+            />
+
+            <SendTransactionModal
+                isOpen={showSendModal}
+                onClose={() => setShowSendModal(false)}
+                onSuccess={() => {
+                    setSuccess("Transaction sent successfully!")
+                    // Transaction history will auto-refresh
+                }}
+            />
+
+            <WalletMismatchModal
+                isOpen={showMismatchModal}
+                onClose={() => setShowMismatchModal(false)}
+                expectedWallet={user?.wallet_address || ''}
+                connectedWallet={walletAddress || ''}
+                onDisconnect={handleMismatchDisconnect}
             />
         </div>
     )
