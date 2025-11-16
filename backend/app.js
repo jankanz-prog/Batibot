@@ -14,6 +14,7 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const tradeRoutes = require('./routes/tradeRoutes');
 const progressRoutes = require('./routes/progressRoutes');
+const cardanoTransactionRoutes = require('./routes/cardanoTransactionRoutes');
 const ItemGenerationService = require('./services/itemGenerationService');
 const { autoSeedDatabase } = require('./config/autoSeeder');
 require('./models'); // This will load all models and associations
@@ -235,6 +236,7 @@ app.use('/api/uploads', uploadRoutes);
 app.use('/api', notificationRoutes);
 app.use('/api/trades', tradeRoutes);
 app.use('/api', progressRoutes);
+app.use('/api/cardano/transactions', cardanoTransactionRoutes);
 
 // Serve uploaded files statically (for viewing)
 app.use('/uploads', express.static('uploads'));
@@ -268,7 +270,7 @@ const PORT = process.env.PORT || 3001;
 sequelize.authenticate()
     .then(() => {
         console.log('PostgreSQL connected successfully');
-        return sequelize.sync({force: true }); // change to 'force: true' if you want to reset the database/if corrupted
+        return sequelize.sync({alter: true }); // change to 'force: true' if you want to reset the database/if corrupted
     })
     .then(async () => {
         console.log('Database tables created successfully');

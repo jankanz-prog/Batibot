@@ -17,6 +17,7 @@ const Achievement = require('./achievementModel');
 const Rank = require('./rankModel');
 const UserBadge = require('./userBadgeModel');
 const UserAchievement = require('./userAchievementModel');
+const CardanoTransaction = require('./cardanoTransactionModel');
 
 // User Inventory associations
 Inventory.belongsTo(User, { foreignKey: 'user_id' });
@@ -86,8 +87,14 @@ UserAchievement.belongsTo(Achievement, { foreignKey: 'achievement_id', as: 'Achi
 Profile.belongsTo(Rank, { foreignKey: 'current_rank_id', as: 'CurrentRank' });
 Rank.hasMany(Profile, { foreignKey: 'current_rank_id', as: 'Profiles' });
 
+// Cardano Transaction Associations
+User.hasMany(CardanoTransaction, { foreignKey: 'sender_user_id', as: 'SentTransactions' });
+User.hasMany(CardanoTransaction, { foreignKey: 'receiver_user_id', as: 'ReceivedTransactions' });
+CardanoTransaction.belongsTo(User, { foreignKey: 'sender_user_id', as: 'SenderUser' });
+CardanoTransaction.belongsTo(User, { foreignKey: 'receiver_user_id', as: 'ReceiverUser' });
+
 module.exports = {
     User, Inventory, Item, ItemRarity, ItemCategory, ChatMessage,
     Trade, TradeItem, Wallet, TrustScore, Notification, Profile, Note,
-    Badge, Achievement, Rank, UserBadge, UserAchievement
+    Badge, Achievement, Rank, UserBadge, UserAchievement, CardanoTransaction
 };
