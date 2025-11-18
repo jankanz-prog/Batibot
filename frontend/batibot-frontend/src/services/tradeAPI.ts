@@ -157,5 +157,29 @@ export const tradeAPI = {
             console.error('Error cancelling trade offer:', error);
             throw error;
         }
+    },
+
+    // Get user trade statistics
+    async getTradeStatistics(token: string) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/trades/statistics`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch trade statistics');
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Error fetching trade statistics:', error);
+            throw error;
+        }
     }
 };

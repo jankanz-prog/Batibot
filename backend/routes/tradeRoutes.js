@@ -6,7 +6,8 @@ const {
     createTradeOffer,
     acceptTradeOffer,
     rejectTradeOffer,
-    cancelTradeOffer
+    cancelTradeOffer,
+    getUserTradeStatistics
 } = require('../controllers/tradeController');
 const { authenticateToken } = require('../controllers/authController');
 
@@ -15,6 +16,7 @@ const router = express.Router();
 // All routes require authentication
 router.get('/marketplace', authenticateToken, getMarketplaceItems);
 router.get('/offers', authenticateToken, getUserTradeOffers);
+router.get('/statistics', authenticateToken, getUserTradeStatistics);
 router.post('/', authenticateToken, createTradeOffer);
 router.patch('/:trade_id/accept', authenticateToken, acceptTradeOffer);
 router.patch('/:trade_id/reject', authenticateToken, rejectTradeOffer);

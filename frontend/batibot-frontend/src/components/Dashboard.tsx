@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
 import { useNavigate } from "react-router-dom"
 import progressAPI, { type UserProgress } from "../services/progressAPI"
+import { tradeAPI } from "../services/tradeAPI"
 import { TrendingUp, CheckCircle, Clock, XCircle, Package, DollarSign, ShoppingCart, FileText, User, BarChart3, Users, Settings } from "lucide-react"
 import { AchievementsBadgesSlideshow } from "./AchievementsBadgesSlideshow"
 
@@ -45,22 +46,28 @@ export const Dashboard: React.FC = () => {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        const fetchUserProgress = async () => {
+        const fetchUserData = async () => {
             if (!token) return
             
             try {
                 setLoading(true)
-                const progress = await progressAPI.getUserProgress(token)
+                
+                // Fetch user progress and trade statistics in parallel
+                const [progress, tradeStats] = await Promise.all([
+                    progressAPI.getUserProgress(token),
+                    tradeAPI.getTradeStatistics(token)
+                ])
+                
                 setUserProgress(progress)
                 
-                // Update stats with real data
+                // Update stats with real data from both APIs
                 setStats({
-                    tradesCompleted: 0, // TODO: Get from trades API
-                    tradesFailed: 0,
-                    tradesInProgress: 0,
-                    totalItemsTraded: 0,
-                    totalValueTraded: 0,
-                    successRate: 0,
+                    tradesCompleted: tradeStats.data.tradesCompleted,
+                    tradesFailed: tradeStats.data.tradesFailed,
+                    tradesInProgress: tradeStats.data.tradesInProgress,
+                    totalItemsTraded: tradeStats.data.totalItemsTraded,
+                    totalValueTraded: tradeStats.data.totalValueTraded,
+                    successRate: tradeStats.data.successRate,
                     rank: progress.profile.currentRank?.name || 'Novice',
                     rankProgress: progress.rankProgress,
                     level: progress.profile.level,
@@ -68,13 +75,13 @@ export const Dashboard: React.FC = () => {
                     experienceToNext: progress.nextRank ? progress.nextRank.xpRequired - progress.profile.xp : 0
                 })
             } catch (error) {
-                console.error('Failed to fetch user progress:', error)
+                console.error('Failed to fetch user data:', error)
             } finally {
                 setLoading(false)
             }
         }
         
-        fetchUserProgress()
+        fetchUserData()
     }, [token])
 
     const getRarityColor = (rarity: string) => {

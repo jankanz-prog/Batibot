@@ -10,7 +10,6 @@ const CardanoTransaction = sequelize.define('CardanoTransaction', {
     tx_hash: {
         type: DataTypes.STRING(255),
         allowNull: false,
-        unique: true,
         comment: 'Cardano transaction hash',
     },
     sender_wallet_address: {
@@ -75,6 +74,13 @@ const CardanoTransaction = sequelize.define('CardanoTransaction', {
     tableName: 'cardano_transactions',
     timestamps: true,
     underscored: true,
+    indexes: [
+        {
+            unique: true,
+            fields: ['tx_hash'],
+            name: 'cardano_transactions_tx_hash_unique'
+        }
+    ]
 });
 
 module.exports = CardanoTransaction;

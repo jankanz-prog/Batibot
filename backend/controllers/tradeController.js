@@ -630,11 +630,83 @@ const cancelTradeOffer = async (req, res) => {
     }
 };
 
+// Get user trade statistics
+const getUserTradeStatistics = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Get all trades involving the user
+        const allTrades = await Trade.findAll({
+            where: {
+                [Op.or]: [
+                    { sender_id: userId },
+                    { receiver_id: userId }
+                ]
+            },
+            include: [
+                {
+                    model: TradeItem,
+                    as: 'Items',
+                    include: [
+                        {
+                            model: Item,
+                            as: 'Item'
+                        }
+                    ]
+                }
+            ]
+        });
+
+        // Calculate statistics
+        const tradesCompleted = allTrades.filter(t => t.status === 'Completed').length;
+        const tradesFailed = allTrades.filter(t => t.status === 'Rejected').length;
+        const tradesInProgress = allTrades.filter(t => t.status === 'Pending' || t.status === 'Accepted').length;
+
+        // Calculate total items traded (only from completed trades)
+        const completedTrades = allTrades.filter(t => t.status === 'Completed');
+        let totalItemsTraded = 0;
+        let totalValueTraded = 0;
+
+        completedTrades.forEach(trade => {
+            trade.Items.forEach(tradeItem => {
+                totalItemsTraded += tradeItem.quantity;
+                totalValueTraded += (tradeItem.Item?.value || 0) * tradeItem.quantity;
+            });
+        });
+
+        // Calculate success rate
+        const totalFinishedTrades = tradesCompleted + tradesFailed;
+        const successRate = totalFinishedTrades > 0 
+            ? Math.round((tradesCompleted / totalFinishedTrades) * 100) 
+            : 0;
+
+        res.json({
+            success: true,
+            data: {
+                tradesCompleted,
+                tradesFailed,
+                tradesInProgress,
+                totalItemsTraded,
+                totalValueTraded,
+                successRate
+            }
+        });
+    } catch (error) {
+        console.error('❌ Error fetching trade statistics:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch trade statistics',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getMarketplaceItems,
     getUserTradeOffers,
     createTradeOffer,
     acceptTradeOffer,
     rejectTradeOffer,
-    cancelTradeOffer
+    cancelTradeOffer,
+    getUserTradeStatistics
 };
