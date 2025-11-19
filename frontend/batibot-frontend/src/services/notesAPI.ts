@@ -88,6 +88,85 @@ class NotesAPI {
             headers: this.getAuthHeaders(token),
         })
     }
+
+    async togglePin(id: number, token: string): Promise<NoteResponse> {
+        return this.makeRequest<NoteResponse>(`/auth/notes/${id}/toggle-pin`, {
+            method: "PATCH",
+            headers: this.getAuthHeaders(token),
+        })
+    }
+
+    async toggleArchive(id: number, token: string): Promise<NoteResponse> {
+        return this.makeRequest<NoteResponse>(`/auth/notes/${id}/toggle-archive`, {
+            method: "PATCH",
+            headers: this.getAuthHeaders(token),
+        })
+    }
+
+    async updatePriority(id: number, priority: 'low' | 'medium' | 'high', token: string): Promise<NoteResponse> {
+        return this.makeRequest<NoteResponse>(`/auth/notes/${id}/priority`, {
+            method: "PATCH",
+            headers: this.getAuthHeaders(token),
+            body: JSON.stringify({ priority }),
+        })
+    }
+
+    async updateColor(id: number, color: string | null, token: string): Promise<NoteResponse> {
+        return this.makeRequest<NoteResponse>(`/auth/notes/${id}/color`, {
+            method: "PATCH",
+            headers: this.getAuthHeaders(token),
+            body: JSON.stringify({ color }),
+        })
+    }
+
+    async updateTags(id: number, tags: string[] | null, token: string): Promise<NoteResponse> {
+        return this.makeRequest<NoteResponse>(`/auth/notes/${id}/tags`, {
+            method: "PATCH",
+            headers: this.getAuthHeaders(token),
+            body: JSON.stringify({ tags }),
+        })
+    }
+
+    async setReminder(id: number, reminder: string | null, token: string): Promise<NoteResponse> {
+        return this.makeRequest<NoteResponse>(`/auth/notes/${id}/reminder`, {
+            method: "PATCH",
+            headers: this.getAuthHeaders(token),
+            body: JSON.stringify({ reminder }),
+        })
+    }
+
+    async updateDrawings(id: number, drawings: any | null, token: string): Promise<NoteResponse> {
+        return this.makeRequest<NoteResponse>(`/auth/notes/${id}/drawings`, {
+            method: "PATCH",
+            headers: this.getAuthHeaders(token),
+            body: JSON.stringify({ drawings }),
+        })
+    }
+
+    async uploadAttachments(id: number, files: File[], token: string): Promise<NoteResponse> {
+        const formData = new FormData()
+        files.forEach(file => {
+            formData.append('files', file)
+        })
+
+        const url = `${API_BASE_URL}/auth/notes/${id}/attachments`
+
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                // Don't set Content-Type - browser will set it with boundary for FormData
+            },
+            body: formData,
+        })
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}))
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
+        }
+
+        return await response.json()
+    }
 }
 
 export const notesAPI = new NotesAPI()

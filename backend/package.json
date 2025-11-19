@@ -12,16 +12,22 @@
   "license": "ISC",
   "description": "Batibot backend API",
   "dependencies": {
+    "@excalidraw/excalidraw": "^0.18.0",
     "@types/multer": "^2.0.0",
+    "@types/react-datepicker": "^6.2.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
+    "mysql2": "^3.6.5",
     "node-cron": "^4.2.1",
-    "pg": "^8.11.3",
-    "pg-hstore": "^2.3.4",
+    "quill": "^2.0.3",
+    "react-colorful": "^5.6.1",
+    "react-datepicker": "^8.9.0",
+    "react-dropzone": "^14.3.8",
+    "react-quill": "^2.0.0",
     "sequelize": "^6.37.7",
     "socket.io": "^4.8.1",
     "sqlite3": "^5.1.7",
@@ -29,6 +35,7 @@
     "ws": "^8.18.3"
   },
   "devDependencies": {
+    "baseline-browser-mapping": "^2.8.29",
     "jest": "^29.7.0",
     "nodemon": "^3.0.1",
     "supertest": "^6.3.3"

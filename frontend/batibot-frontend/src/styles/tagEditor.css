@@ -1,0 +1,72 @@
+.tag-editor {
+    margin-bottom: 1rem;
+}
+
+.tag-editor label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: #374151;
+}
+
+.tag-count {
+    color: #6b7280;
+    font-weight: 400;
+}
+
+.tag-input-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    min-height: 42px;
+    background: white;
+}
+
+.tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    background: #e0e7ff;
+    color: #3730a3;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.tag-remove {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #4f46e5;
+    transition: color 0.2s;
+}
+
+.tag-remove:hover {
+    color: #312e81;
+}
+
+.tag-input {
+    flex: 1;
+    min-width: 120px;
+    border: none;
+    outline: none;
+    font-size: 0.875rem;
+    padding: 0.25rem;
+    background: transparent;
+}
+
+.tag-hint {
+    display: block;
+    margin-top: 0.25rem;
+    color: #6b7280;
+    font-size: 0.75rem;
+}
+
