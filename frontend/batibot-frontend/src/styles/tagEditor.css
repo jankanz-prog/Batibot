@@ -1,56 +1,67 @@
+/* tagEditor.css */
+
 .tag-editor {
-    margin-bottom: 1rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .tag-editor label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    font-size: 0.875rem;
-    color: #374151;
+    font-weight: 600;
 }
 
 .tag-count {
-    color: #6b7280;
     font-weight: 400;
+    color: #888;
+    margin-left: 4px;
+    font-size: 13px;
 }
 
 .tag-input-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    min-height: 42px;
-    background: white;
+    gap: 6px;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fafafa;
+    min-height: 40px;
+    align-items: center;
+    transition: border-color 0.2s;
+}
+
+.tag-input-container:focus-within {
+    border-color: #4a90e2;
 }
 
 .tag-chip {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 0.25rem;
-    padding: 0.25rem 0.5rem;
-    background: #e0e7ff;
-    color: #3730a3;
-    border-radius: 0.25rem;
-    font-size: 0.875rem;
-    font-weight: 500;
+    gap: 4px;
+    padding: 4px 8px;
+    background-color: #eaf3ff;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #333;
 }
 
 .tag-remove {
-    display: flex;
-    align-items: center;
-    padding: 0;
     background: none;
     border: none;
+    color: #888;
     cursor: pointer;
-    color: #4f46e5;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: color 0.2s;
 }
 
 .tag-remove:hover {
-    color: #312e81;
+    color: #e74c3c;
 }
 
 .tag-input {
@@ -58,15 +69,16 @@
     min-width: 120px;
     border: none;
     outline: none;
-    font-size: 0.875rem;
-    padding: 0.25rem;
-    background: transparent;
+    font-size: 14px;
+    background-color: transparent;
+    padding: 4px 0;
+}
+
+.tag-input::placeholder {
+    color: #aaa;
 }
 
 .tag-hint {
-    display: block;
-    margin-top: 0.25rem;
-    color: #6b7280;
-    font-size: 0.75rem;
+    font-size: 12px;
+    color: #888;
 }
-
