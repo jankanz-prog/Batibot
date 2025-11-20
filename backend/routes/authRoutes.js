@@ -6,7 +6,23 @@ const { uploadProfilePicture, deleteProfilePicture } = require('../controllers/p
 const upload = require('../middleware/upload');
 const { getInventory, addItemToInventory, removeItemFromInventory, softDeleteItem, restoreItem, getDeletedItems, permanentlyDeleteItem } = require("../controllers/inventoryController");
 const { generateItemsManually } = require('../controllers/itemGenerationController');
-const { createNote, getAllNotes, getNoteById, updateNote, deleteNote, toggleFavorite} = require('../controllers/notesController');
+const { 
+    createNote, 
+    getAllNotes, 
+    getNoteById, 
+    updateNote, 
+    deleteNote, 
+    toggleFavorite,
+    togglePin,
+    toggleArchive,
+    updatePriority,
+    updateColor,
+    updateTags,
+    setReminder,
+    updateDrawings,
+    uploadAttachments
+} = require('../controllers/notesController');
+const notesUpload = require('../middleware/notesUpload');
 const {createItem, getAllItems, getItemById, updateItem, deleteItem} = require('../controllers/itemController');
 const { createRarity, getAllRarities} = require('../controllers/itemRarityController');
 
@@ -39,8 +55,17 @@ router.get('/inventory/deleted', authenticateToken, getDeletedItems);
 router.post('/notes', authenticateToken, createNote);
 router.get('/notes', authenticateToken, getAllNotes);
 router.get('/notes/:id', authenticateToken, getNoteById);
+router.put('/notes/:id', authenticateToken, updateNote);
 router.delete('/notes/:id', authenticateToken, deleteNote);
 router.patch('/notes/:id/toggle-favorite', authenticateToken, toggleFavorite);
+router.patch('/notes/:id/toggle-pin', authenticateToken, togglePin);
+router.patch('/notes/:id/toggle-archive', authenticateToken, toggleArchive);
+router.patch('/notes/:id/priority', authenticateToken, updatePriority);
+router.patch('/notes/:id/color', authenticateToken, updateColor);
+router.patch('/notes/:id/tags', authenticateToken, updateTags);
+router.patch('/notes/:id/reminder', authenticateToken, setReminder);
+router.patch('/notes/:id/drawings', authenticateToken, updateDrawings);
+router.post('/notes/:id/attachments', authenticateToken, notesUpload.array('files', 5), uploadAttachments);
 
 // Item routes (admin only for create/update/delete)
 router.post('/items', authenticateToken, requireAdmin, createItem);

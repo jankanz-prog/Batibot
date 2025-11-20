@@ -41,28 +41,97 @@ The system introduces **automatic item drops**, rarity-based assets, and craftin
 ## 🚀 Getting Started  
 
 ### Prerequisites  
-- Node.js and npm installed  
-- Hardhat or Truffle for smart contract deployment  
-- MetaMask or WalletConnect-compatible wallet  
+- **Node.js** (v18 or higher) and npm installed  
+- **MySQL** (v8.0 or higher) installed and running
+- **MetaMask** or WalletConnect-compatible wallet (for blockchain features)
 
 ### Setup  
-1. Clone the repo:  
-   ```bash
-   git clone https://github.com/your-username/trading-platform.git
-   cd trading-platform
-2. Install dependencies:
-   ```bash
-   npm install
 
+#### 1. Database Setup
+First, create a MySQL database:
+```bash
+# Login to MySQL
+mysql -u root -p
 
-3. Start the frontend:
-   ```bash
-   npm run dev
+# Create database
+CREATE DATABASE batibot;
 
+# Create user (optional, or use root)
+CREATE USER 'batibot_user'@'localhost' IDENTIFIED BY 'your_password';
+GRANT ALL PRIVILEGES ON batibot.* TO 'batibot_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
 
-4. Deploy smart contracts (example with Hardhat):
-   ```bash
-   npx hardhat run scripts/deploy.js --network rinkeby
+#### 2. Backend Setup
+```bash
+cd backend
+
+# Install dependencies
+npm install
+
+# Create .env file with MySQL configuration
+# Copy this template:
+```
+
+Create a `.env` file in the `backend` directory:
+```env
+PORT=3001
+FRONTEND_URL=http://localhost:5173
+
+# MySQL Configuration
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=batibot
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+
+# JWT Secret (change this to a random string)
+JWT_SECRET=your-secret-key-change-this-in-production
+
+# Admin Creation Key (for creating admin users)
+ADMIN_CREATION_KEY=super-secret-admin-key
+```
+
+```bash
+# Start the backend server
+npm run dev
+```
+
+The server will automatically:
+- Connect to MySQL database
+- Create all required tables
+- Seed initial data (categories, rarities, etc.)
+
+#### 3. Frontend Setup
+```bash
+cd frontend/batibot-frontend
+
+# Install dependencies
+npm install
+
+# Create .env file (optional - defaults work for local development)
+# VITE_API_BASE_URL=http://localhost:3001/api
+
+# Start the frontend
+npm run dev
+```
+
+The frontend will be available at `http://localhost:5173`
+
+#### 4. Create an Admin Account
+1. Register a regular user account through the frontend
+2. Use the admin creation endpoint:
+```bash
+curl -X POST http://localhost:3001/api/auth/create-admin \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "email": "admin@example.com",
+    "password": "your_password",
+    "adminKey": "super-secret-admin-key"
+  }'
+```
 
 📌 Roadmap
 

@@ -1,0 +1,76 @@
+.priority-selector {
+    margin-bottom: 1.25rem;
+}
+
+.priority-selector label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+
+.priority-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.priority-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border: 2px solid var(--border-primary);
+    border-radius: 0.5rem;
+    background: var(--bg-tertiary);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.priority-btn:hover {
+    border-color: var(--border-accent);
+    background: var(--bg-elevated);
+}
+
+.priority-btn.active {
+    font-weight: 600;
+    transform: scale(1.02);
+}
+
+.priority-btn.priority-low {
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.priority-btn.priority-low.active {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.priority-btn.priority-medium {
+    border-color: var(--warning);
+    color: var(--warning);
+}
+
+.priority-btn.priority-medium.active {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: var(--warning);
+    color: var(--warning);
+}
+
+.priority-btn.priority-high {
+    border-color: var(--error);
+    color: var(--error);
+}
+
+.priority-btn.priority-high.active {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: var(--error);
+    color: var(--error);
+}

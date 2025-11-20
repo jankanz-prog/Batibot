@@ -1,10 +1,20 @@
 import type React from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
+import ReactQuill from "react-quill"
+import "react-quill/dist/quill.snow.css"
 import { useAuth } from "../context/AuthContext"
 import { notesAPI } from "../services/notesAPI"
-import type { CreateNoteRequest, Note, UpdateNoteRequest } from "../types/notes"
-import { Plus, Search, Star, Edit2, Trash2, X } from "lucide-react"
+import type { CreateNoteRequest, Note, UpdateNoteRequest, Attachment } from "../types/notes"
+import { Plus, Search, Star, Edit2, Trash2, X, Pin, Archive, Tag as TagIcon, Paperclip, Palette, Calendar, AlertCircle, AlertTriangle, Circle, Image as ImageIcon } from "lucide-react"
+import { PrioritySelector } from "./notes/PrioritySelector"
+import { ColorPicker } from "./notes/ColorPicker"
+import { TagEditor } from "./notes/TagEditor"
+import { AttachmentsPanel } from "./notes/AttachmentsPanel"
+import { ReminderPicker } from "./notes/ReminderPicker"
+import { DrawingModal } from "./notes/DrawingModal"
 import "../styles/notes.css"
+
+const AUTO_SAVE_DELAY = 2500 // 2.5 seconds
 
 export const NotesPage: React.FC = () => {
     const { token } = useAuth()
@@ -12,23 +22,66 @@ export const NotesPage: React.FC = () => {
     const [notes, setNotes] = useState<Note[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [savingStatus, setSavingStatus] = useState<{ [key: number]: "saving" | "saved" | null }>({})
 
     const [searchTerm, setSearchTerm] = useState("")
     const [colorFilter, setColorFilter] = useState<string | null>(null)
+    const [priorityFilter, setPriorityFilter] = useState<string | null>(null)
+    const [tagFilter, setTagFilter] = useState<string | null>(null)
+    const [showArchived, setShowArchived] = useState(false)
 
     const [isCreating, setIsCreating] = useState(false)
-    const [newNote, setNewNote] = useState<CreateNoteRequest>({ title: "", content: "" })
+    const [newNote, setNewNote] = useState<CreateNoteRequest>({
+        title: "",
+        content: "",
+        priority: "medium",
+        pinned: false,
+        archived: false,
+        color: null,
+        tags: null,
+        attachments: null,
+        drawings: null,
+        reminder: null
+    })
 
     const [editingNote, setEditingNote] = useState<Note | null>(null)
     const [editForm, setEditForm] = useState<UpdateNoteRequest>({ title: "", content: "" })
+    const [showDrawingModal, setShowDrawingModal] = useState(false)
+    const [drawingNoteId, setDrawingNoteId] = useState<number | null>(null)
 
     const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
+
+    const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     useEffect(() => {
         if (!token) return
         void fetchNotes()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token])
+
+    // Autosave effect for editing note
+    useEffect(() => {
+        if (!editingNote || !editingNote.id) return
+
+        // Clear existing timeout
+        if (autosaveTimeoutRef.current) {
+            clearTimeout(autosaveTimeoutRef.current)
+        }
+
+        // Set saving status
+        setSavingStatus(prev => ({ ...prev, [editingNote.id]: "saving" }))
+
+        // Set new timeout
+        autosaveTimeoutRef.current = setTimeout(() => {
+            void handleAutosave()
+        }, AUTO_SAVE_DELAY)
+
+        return () => {
+            if (autosaveTimeoutRef.current) {
+                clearTimeout(autosaveTimeoutRef.current)
+            }
+        }
+    }, [editForm, editingNote])
 
     const fetchNotes = async () => {
         if (!token) return
@@ -48,12 +101,36 @@ export const NotesPage: React.FC = () => {
         }
     }
 
+    const handleAutosave = async () => {
+        if (!token || !editingNote || !editingNote.id) return
+
+        const title = editForm.title.trim()
+        const content = editForm.content?.toString().trim() || ""
+
+        if (!title || !content) return
+
+        try {
+            const res = await notesAPI.updateNote(editingNote.id, editForm, token)
+            if (res.success) {
+                setNotes(prev => prev.map(n => (n.id === editingNote.id ? res.data : n)))
+                setEditingNote(res.data)
+                setSavingStatus(prev => ({ ...prev, [editingNote.id]: "saved" }))
+                setTimeout(() => {
+                    setSavingStatus(prev => ({ ...prev, [editingNote.id]: null }))
+                }, 2000)
+            }
+        } catch (e) {
+            console.error("Autosave error:", e)
+            setSavingStatus(prev => ({ ...prev, [editingNote.id]: null }))
+        }
+    }
+
     const handleCreateNote = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!token) return
 
         const title = newNote.title.trim()
-        const content = newNote.content.trim()
+        const content = typeof newNote.content === "string" ? newNote.content.trim() : ""
 
         if (!title || !content) {
             setError("Both title and content are required")
@@ -62,10 +139,21 @@ export const NotesPage: React.FC = () => {
 
         try {
             setError(null)
-            const res = await notesAPI.createNote({ title, content }, token)
+            const res = await notesAPI.createNote(newNote, token)
             if (res.success) {
-                setNotes(prev => [res.data, ...prev])
-                setNewNote({ title: "", content: "" })
+                await fetchNotes() // Re-fetch to get sorted order
+                setNewNote({
+                    title: "",
+                    content: "",
+                    priority: "medium",
+                    pinned: false,
+                    archived: false,
+                    color: null,
+                    tags: null,
+                    attachments: null,
+                    drawings: null,
+                    reminder: null
+                })
                 setIsCreating(false)
             } else {
                 setError(res.message || "Failed to create note")
@@ -77,7 +165,18 @@ export const NotesPage: React.FC = () => {
 
     const startEdit = (note: Note) => {
         setEditingNote(note)
-        setEditForm({ title: note.title, content: note.content ?? "" })
+        setEditForm({
+            title: note.title,
+            content: note.content ?? "",
+            color: note.color,
+            priority: note.priority,
+            pinned: note.pinned,
+            archived: note.archived,
+            tags: note.tags,
+            attachments: note.attachments,
+            drawings: note.drawings,
+            reminder: note.reminder
+        })
         setError(null)
     }
 
@@ -85,21 +184,14 @@ export const NotesPage: React.FC = () => {
         e.preventDefault()
         if (!token || !editingNote) return
 
-        const title = editForm.title.trim()
-        const content = editForm.content.trim()
-
-        if (!title || !content) {
-            setError("Both title and content are required")
-            return
-        }
-
         try {
             setError(null)
-            const res = await notesAPI.updateNote(editingNote.id, { title, content }, token)
+            const res = await notesAPI.updateNote(editingNote.id, editForm, token)
             if (res.success) {
-                setNotes(prev => prev.map(n => (n.id === editingNote.id ? res.data : n)))
+                await fetchNotes()
                 setEditingNote(null)
                 setEditForm({ title: "", content: "" })
+                setSavingStatus({})
             } else {
                 setError(res.message || "Failed to update note")
             }
@@ -139,14 +231,161 @@ export const NotesPage: React.FC = () => {
         }
     }
 
-    // Extract hashtags from content
-    const extractHashtags = (text: string): string[] => {
-        const hashtagRegex = /#[\w]+/g
-        return text.match(hashtagRegex) || []
+    const handleTogglePin = async (id: number) => {
+        if (!token) return
+        try {
+            setError(null)
+            const res = await notesAPI.togglePin(id, token)
+            if (res.success) {
+                await fetchNotes()
+            } else {
+                setError(res.message || "Failed to toggle pin")
+            }
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Failed to toggle pin")
+        }
     }
 
-    // Get color theme from hashtags
+    const handleToggleArchive = async (id: number) => {
+        if (!token) return
+        try {
+            setError(null)
+            const res = await notesAPI.toggleArchive(id, token)
+            if (res.success) {
+                await fetchNotes()
+            } else {
+                setError(res.message || "Failed to toggle archive")
+            }
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Failed to toggle archive")
+        }
+    }
+
+    const handleUpdatePriority = async (id: number, priority: 'low' | 'medium' | 'high') => {
+        if (!token) return
+        try {
+            setError(null)
+            const res = await notesAPI.updatePriority(id, priority, token)
+            if (res.success) {
+                await fetchNotes()
+            } else {
+                setError(res.message || "Failed to update priority")
+            }
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Failed to update priority")
+        }
+    }
+
+    const handleUpdateColor = async (id: number, color: string | null) => {
+        if (!token) return
+        try {
+            setError(null)
+            const res = await notesAPI.updateColor(id, color, token)
+            if (res.success) {
+                await fetchNotes()
+            } else {
+                setError(res.message || "Failed to update color")
+            }
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Failed to update color")
+        }
+    }
+
+    const handleUpdateTags = async (id: number, tags: string[] | null) => {
+        if (!token) return
+        try {
+            setError(null)
+            const res = await notesAPI.updateTags(id, tags, token)
+            if (res.success) {
+                await fetchNotes()
+            } else {
+                setError(res.message || "Failed to update tags")
+            }
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Failed to update tags")
+        }
+    }
+
+    const handleSetReminder = async (id: number, reminder: string | null) => {
+        if (!token) return
+        try {
+            setError(null)
+            const res = await notesAPI.setReminder(id, reminder, token)
+            if (res.success) {
+                await fetchNotes()
+            } else {
+                setError(res.message || "Failed to set reminder")
+            }
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Failed to set reminder")
+        }
+    }
+
+    const handleUploadAttachments = async (id: number, files: File[]) => {
+        if (!token) return
+        try {
+            setError(null)
+            const res = await notesAPI.uploadAttachments(id, files, token)
+            if (res.success && res.data) {
+                // Update editForm immediately with new attachments
+                if (editingNote && editingNote.id === id) {
+                    setEditForm(prev => ({
+                        ...prev,
+                        attachments: res.data.attachments || null
+                    }))
+                    // Also update editingNote to keep in sync
+                    setEditingNote(res.data)
+                }
+                // Refresh notes list to update displayed notes
+                await fetchNotes()
+            } else {
+                setError(res.message || "Failed to upload attachments")
+            }
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Failed to upload attachments")
+        }
+    }
+
+    const handleDeleteAttachment = async (noteId: number, attachmentIndex: number) => {
+        if (!editingNote || editingNote.id !== noteId) return
+        
+        const currentAttachments = editingNote.attachments || []
+        const updatedAttachments = currentAttachments.filter((_, idx) => idx !== attachmentIndex)
+        
+        setEditForm(prev => ({ ...prev, attachments: updatedAttachments.length > 0 ? updatedAttachments : null }))
+        await handleEditNote({ preventDefault: () => {} } as React.FormEvent)
+    }
+
+    const handleSaveDrawing = async (drawingData: any) => {
+        if (!token || !drawingNoteId) return
+        try {
+            setError(null)
+            const res = await notesAPI.updateDrawings(drawingNoteId, drawingData, token)
+            if (res.success && res.data) {
+                // Update editForm immediately with new drawing
+                if (editingNote && editingNote.id === drawingNoteId) {
+                    setEditForm(prev => ({
+                        ...prev,
+                        drawings: res.data.drawings || null
+                    }))
+                    // Also update editingNote to keep in sync
+                    setEditingNote(res.data)
+                }
+                // Refresh notes list to update displayed notes
+                await fetchNotes()
+                setShowDrawingModal(false)
+                setDrawingNoteId(null)
+            } else {
+                setError(res.message || "Failed to save drawing")
+            }
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Failed to save drawing")
+        }
+    }
+
     const getNoteColor = (note: Note): string => {
+        if (note.color) return note.color
+        // Fallback to old hashtag method
         const content = note.content || ""
         if (content.includes("#red") || content.includes("#urgent") || content.includes("#important")) return "red"
         if (content.includes("#blue") || content.includes("#info") || content.includes("#note")) return "blue"
@@ -157,12 +396,22 @@ export const NotesPage: React.FC = () => {
     }
 
     const filteredNotes = notes.filter(n => {
+        // Don't show archived notes unless filter is enabled
+        if (!showArchived && n.archived) return false
+
         const term = searchTerm.toLowerCase()
         const matchesSearch = n.title.toLowerCase().includes(term) ||
-            (n.content ? n.content.toLowerCase().includes(term) : false)
-        const matchesColor = !colorFilter || getNoteColor(n) === colorFilter
-        return matchesSearch && matchesColor
+            (n.content ? n.content.toString().toLowerCase().includes(term) : false)
+        
+        const matchesColor = !colorFilter || (n.color === colorFilter || (!n.color && colorFilter === "default"))
+        const matchesPriority = !priorityFilter || n.priority === priorityFilter
+        const matchesTag = !tagFilter || (n.tags && n.tags.includes(tagFilter))
+
+        return matchesSearch && matchesColor && matchesPriority && matchesTag
     })
+
+    // Notes are already sorted by backend (pinned → priority → date)
+    const sortedNotes = filteredNotes
 
     const formatDate = (iso: string) =>
         new Date(iso).toLocaleDateString("en-US", {
@@ -172,6 +421,17 @@ export const NotesPage: React.FC = () => {
             hour: "2-digit",
             minute: "2-digit",
         })
+
+    const getPriorityIcon = (priority: 'low' | 'medium' | 'high') => {
+        switch (priority) {
+            case 'high':
+                return <AlertCircle size={14} className="priority-icon priority-high" />
+            case 'medium':
+                return <AlertTriangle size={14} className="priority-icon priority-medium" />
+            case 'low':
+                return <Circle size={14} className="priority-icon priority-low" />
+        }
+    }
 
     if (loading) {
         return (
@@ -216,51 +476,49 @@ export const NotesPage: React.FC = () => {
                         onChange={e => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="color-filters">
-                    <button 
-                        className={`color-filter-btn ${!colorFilter ? 'active' : ''}`}
-                        onClick={() => setColorFilter(null)}
+                <div className="filter-buttons">
+                    <button
+                        className={`filter-btn ${showArchived ? 'active' : ''}`}
+                        onClick={() => setShowArchived(!showArchived)}
                     >
-                        All
+                        <Archive size={14} />
+                        {showArchived ? "Hide Archived" : "Show Archived"}
                     </button>
-                    <button 
-                        className={`color-filter-btn color-red ${colorFilter === 'red' ? 'active' : ''}`}
-                        onClick={() => setColorFilter('red')}
-                        title="Red (#red, #urgent, #important)"
-                    />
-                    <button 
-                        className={`color-filter-btn color-blue ${colorFilter === 'blue' ? 'active' : ''}`}
-                        onClick={() => setColorFilter('blue')}
-                        title="Blue (#blue, #info, #note)"
-                    />
-                    <button 
-                        className={`color-filter-btn color-green ${colorFilter === 'green' ? 'active' : ''}`}
-                        onClick={() => setColorFilter('green')}
-                        title="Green (#green, #success, #done)"
-                    />
-                    <button 
-                        className={`color-filter-btn color-yellow ${colorFilter === 'yellow' ? 'active' : ''}`}
-                        onClick={() => setColorFilter('yellow')}
-                        title="Yellow (#yellow, #warning, #todo)"
-                    />
-                    <button 
-                        className={`color-filter-btn color-purple ${colorFilter === 'purple' ? 'active' : ''}`}
-                        onClick={() => setColorFilter('purple')}
-                        title="Purple (#purple, #idea, #creative)"
-                    />
+                    <select
+                        className="filter-select"
+                        value={priorityFilter || ""}
+                        onChange={(e) => setPriorityFilter(e.target.value || null)}
+                    >
+                        <option value="">All Priorities</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
                 </div>
             </div>
 
+            {/* Create Note Modal */}
             {isCreating && (
-                <div className="modal-overlay" role="dialog" aria-modal="true">
-                    <div className="modal">
+                <div className="modal-overlay" role="dialog" aria-modal="true" onClick={() => setIsCreating(false)}>
+                    <div className="modal modal-large" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
                             <h2>Create New Note</h2>
                             <button
                                 className="modal-close"
                                 onClick={() => {
                                     setIsCreating(false)
-                                    setNewNote({ title: "", content: "" })
+                                    setNewNote({
+                                        title: "",
+                                        content: "",
+                                        priority: "medium",
+                                        pinned: false,
+                                        archived: false,
+                                        color: null,
+                                        tags: null,
+                                        attachments: null,
+                                        drawings: null,
+                                        reminder: null
+                                    })
                                 }}
                                 aria-label="Close"
                             >
@@ -284,60 +542,34 @@ export const NotesPage: React.FC = () => {
 
                             <div className="form-group">
                                 <label htmlFor="new-note-content">Content *</label>
-                                <textarea
-                                    id="new-note-content"
-                                    rows={6}
-                                    value={newNote.content}
-                                    onChange={e => setNewNote(prev => ({ ...prev, content: e.target.value }))}
+                                <ReactQuill
+                                    theme="snow"
+                                    value={typeof newNote.content === "string" ? newNote.content : ""}
+                                    onChange={(value) => setNewNote(prev => ({ ...prev, content: value }))}
                                     placeholder="Enter note content"
-                                    required
                                 />
                             </div>
 
-                            <div className="form-group">
-                                <label>Color Group (Optional)</label>
-                                <div className="color-picker">
-                                    <button
-                                        type="button"
-                                        className="color-option color-default"
-                                        onClick={() => setNewNote(prev => ({ ...prev, content: prev.content.replace(/#(red|blue|green|yellow|purple|urgent|info|success|warning|idea|important|note|done|todo|creative)/g, '').trim() }))}
-                                        title="Default (No color)"
-                                    >
-                                        Default
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="color-option color-red"
-                                        onClick={() => setNewNote(prev => ({ ...prev, content: `${prev.content} #red`.trim() }))}
-                                        title="Red (#red, #urgent, #important)"
-                                    />
-                                    <button
-                                        type="button"
-                                        className="color-option color-blue"
-                                        onClick={() => setNewNote(prev => ({ ...prev, content: `${prev.content} #blue`.trim() }))}
-                                        title="Blue (#blue, #info, #note)"
-                                    />
-                                    <button
-                                        type="button"
-                                        className="color-option color-green"
-                                        onClick={() => setNewNote(prev => ({ ...prev, content: `${prev.content} #green`.trim() }))}
-                                        title="Green (#green, #success, #done)"
-                                    />
-                                    <button
-                                        type="button"
-                                        className="color-option color-yellow"
-                                        onClick={() => setNewNote(prev => ({ ...prev, content: `${prev.content} #yellow`.trim() }))}
-                                        title="Yellow (#yellow, #warning, #todo)"
-                                    />
-                                    <button
-                                        type="button"
-                                        className="color-option color-purple"
-                                        onClick={() => setNewNote(prev => ({ ...prev, content: `${prev.content} #purple`.trim() }))}
-                                        title="Purple (#purple, #idea, #creative)"
-                                    />
-                                </div>
-                                <small className="form-hint">Click a color to add a hashtag for color grouping</small>
+                            <div className="form-row">
+                                <PrioritySelector
+                                    value={newNote.priority || "medium"}
+                                    onChange={(priority) => setNewNote(prev => ({ ...prev, priority }))}
+                                />
+                                <ColorPicker
+                                    value={newNote.color}
+                                    onChange={(color) => setNewNote(prev => ({ ...prev, color }))}
+                                />
                             </div>
+
+                            <TagEditor
+                                tags={newNote.tags}
+                                onChange={(tags) => setNewNote(prev => ({ ...prev, tags }))}
+                            />
+
+                            <ReminderPicker
+                                value={newNote.reminder || null}
+                                onChange={(reminder) => setNewNote(prev => ({ ...prev, reminder }))}
+                            />
 
                             <div className="form-actions">
                                 <button
@@ -345,7 +577,18 @@ export const NotesPage: React.FC = () => {
                                     className="btn btn-secondary"
                                     onClick={() => {
                                         setIsCreating(false)
-                                        setNewNote({ title: "", content: "" })
+                                        setNewNote({
+                                            title: "",
+                                            content: "",
+                                            priority: "medium",
+                                            pinned: false,
+                                            archived: false,
+                                            color: null,
+                                            tags: null,
+                                            attachments: null,
+                                            drawings: null,
+                                            reminder: null
+                                        })
                                     }}
                                 >
                                     Cancel
@@ -359,16 +602,20 @@ export const NotesPage: React.FC = () => {
                 </div>
             )}
 
+            {/* Edit Note Modal */}
             {editingNote && (
-                <div className="modal-overlay" role="dialog" aria-modal="true">
-                    <div className="modal">
+                <div className="modal-overlay" role="dialog" aria-modal="true" onClick={() => setEditingNote(null)}>
+                    <div className="modal modal-large" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h2>Edit Note</h2>
+                            <h2>Edit Note {savingStatus[editingNote.id] === "saving" && <span className="saving-indicator">Saving...</span>}
+                                {savingStatus[editingNote.id] === "saved" && <span className="saved-indicator">Saved</span>}
+                            </h2>
                             <button
                                 className="modal-close"
                                 onClick={() => {
                                     setEditingNote(null)
                                     setEditForm({ title: "", content: "" })
+                                    setSavingStatus({})
                                 }}
                                 aria-label="Close"
                             >
@@ -391,13 +638,65 @@ export const NotesPage: React.FC = () => {
 
                             <div className="form-group">
                                 <label htmlFor="edit-note-content">Content *</label>
-                                <textarea
-                                    id="edit-note-content"
-                                    rows={6}
-                                    value={editForm.content}
-                                    onChange={e => setEditForm(prev => ({ ...prev, content: e.target.value }))}
-                                    required
+                                <ReactQuill
+                                    theme="snow"
+                                    value={typeof editForm.content === "string" ? editForm.content : ""}
+                                    onChange={(value) => setEditForm(prev => ({ ...prev, content: value }))}
+                                    placeholder="Enter note content"
                                 />
+                            </div>
+
+                            <div className="form-row">
+                                <PrioritySelector
+                                    value={editForm.priority || "medium"}
+                                    onChange={(priority) => {
+                                        setEditForm(prev => ({ ...prev, priority }))
+                                        void handleUpdatePriority(editingNote.id, priority)
+                                    }}
+                                />
+                                <ColorPicker
+                                    value={editForm.color || null}
+                                    onChange={(color) => {
+                                        setEditForm(prev => ({ ...prev, color }))
+                                        void handleUpdateColor(editingNote.id, color)
+                                    }}
+                                />
+                            </div>
+
+                            <TagEditor
+                                tags={editForm.tags || null}
+                                onChange={(tags) => {
+                                    setEditForm(prev => ({ ...prev, tags }))
+                                    void handleUpdateTags(editingNote.id, tags)
+                                }}
+                            />
+
+                            <ReminderPicker
+                                value={editForm.reminder || null}
+                                onChange={(reminder) => {
+                                    setEditForm(prev => ({ ...prev, reminder }))
+                                    void handleSetReminder(editingNote.id, reminder)
+                                }}
+                            />
+
+                            <AttachmentsPanel
+                                attachments={editForm.attachments || null}
+                                onUpload={(files) => handleUploadAttachments(editingNote.id, files)}
+                                onDelete={(index) => handleDeleteAttachment(editingNote.id, index)}
+                            />
+
+                            <div className="form-group">
+                                <label>Drawing</label>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={() => {
+                                        setDrawingNoteId(editingNote.id)
+                                        setShowDrawingModal(true)
+                                    }}
+                                >
+                                    <ImageIcon size={16} /> {editingNote.drawings ? "Edit Drawing" : "Add Drawing"}
+                                </button>
                             </div>
 
                             <div className="form-actions">
@@ -407,12 +706,13 @@ export const NotesPage: React.FC = () => {
                                     onClick={() => {
                                         setEditingNote(null)
                                         setEditForm({ title: "", content: "" })
+                                        setSavingStatus({})
                                     }}
                                 >
-                                    Cancel
+                                    Close
                                 </button>
                                 <button type="submit" className="btn btn-primary">
-                                    Save
+                                    Save Changes
                                 </button>
                             </div>
                         </form>
@@ -420,6 +720,20 @@ export const NotesPage: React.FC = () => {
                 </div>
             )}
 
+            {/* Drawing Modal */}
+            {showDrawingModal && drawingNoteId && (
+                <DrawingModal
+                    isOpen={showDrawingModal}
+                    onClose={() => {
+                        setShowDrawingModal(false)
+                        setDrawingNoteId(null)
+                    }}
+                    initialData={editingNote?.drawings || null}
+                    onSave={handleSaveDrawing}
+                />
+            )}
+
+            {/* Delete Confirmation Modal */}
             {deleteConfirm !== null && (
                 <div className="modal-overlay" role="dialog" aria-modal="true">
                     <div className="modal modal-small">
@@ -442,61 +756,108 @@ export const NotesPage: React.FC = () => {
             )}
 
             <div className="notes-grid">
-                {filteredNotes.length === 0 ? (
+                {sortedNotes.length === 0 ? (
                     <div className="no-notes">
                         {searchTerm
                             ? "No notes found matching your search."
                             : "No notes yet. Create your first note!"}
                     </div>
                 ) : (
-                    filteredNotes.map(note => {
-                        const hashtags = extractHashtags(note.content || "")
+                    sortedNotes.map(note => {
                         const noteColor = getNoteColor(note)
+                        const backgroundColor = note.color || undefined
                         return (
-                        <div key={note.id} className={`note-card note-${noteColor}`}>
-                            <div className="note-header">
-                                <h3 className="note-title" title={note.title}>
-                                    {note.title}
-                                </h3>
-                                <button
-                                    className={`btn-icon favorite-btn ${note.favorited ? 'favorited' : ''}`}
-                                    onClick={() => handleToggleFavorite(note.id)}
-                                    title={note.favorited ? "Remove from favorites" : "Add to favorites"}
-                                >
-                                    <Star size={18} fill={note.favorited ? "currentColor" : "none"} />
-                                </button>
-                            </div>
-
-                            {note.content && (
-                                <div className="note-content">
-                                    <p>{note.content}</p>
-                                    {hashtags.length > 0 && (
-                                        <div className="note-hashtags">
-                                            {hashtags.map((tag, idx) => (
-                                                <span key={idx} className="hashtag">{tag}</span>
-                                            ))}
-                                        </div>
-                                    )}
+                            <div
+                                key={note.id}
+                                className={`note-card ${note.pinned ? "pinned" : ""} ${note.archived ? "archived" : ""}`}
+                                style={backgroundColor ? { borderLeft: `4px solid ${backgroundColor}`, backgroundColor: backgroundColor === "#ffffff" ? undefined : `${backgroundColor}20` } : undefined}
+                            >
+                                <div className="note-header">
+                                    <div className="note-title-row">
+                                        {note.pinned && <Pin size={16} className="pin-icon" />}
+                                        <h3 className="note-title" title={note.title}>
+                                            {note.title}
+                                        </h3>
+                                        {getPriorityIcon(note.priority)}
+                                    </div>
+                                    <div className="note-header-actions">
+                                        <button
+                                            className={`btn-icon ${note.pinned ? 'active' : ''}`}
+                                            onClick={() => handleTogglePin(note.id)}
+                                            title={note.pinned ? "Unpin" : "Pin"}
+                                        >
+                                            <Pin size={16} />
+                                        </button>
+                                        <button
+                                            className={`btn-icon favorite-btn ${note.favorited ? 'favorited' : ''}`}
+                                            onClick={() => handleToggleFavorite(note.id)}
+                                            title={note.favorited ? "Remove from favorites" : "Add to favorites"}
+                                        >
+                                            <Star size={16} fill={note.favorited ? "currentColor" : "none"} />
+                                        </button>
+                                    </div>
                                 </div>
-                            )}
 
-                            <div className="note-footer">
-                                <div className="note-dates">
-                                    <small>Created: {formatDate(note.created_at)}</small>
-                                    {note.updated_at !== note.created_at && (
+                                <div className="note-content" dangerouslySetInnerHTML={{ __html: note.content || "" }} />
+
+                                {note.tags && note.tags.length > 0 && (
+                                    <div className="note-tags">
+                                        {note.tags.map((tag, idx) => (
+                                            <span
+                                                key={idx}
+                                                className="tag-chip"
+                                                onClick={() => setTagFilter(tag)}
+                                                title="Click to filter by this tag"
+                                            >
+                                                <TagIcon size={12} />
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {note.attachments && note.attachments.length > 0 && (
+                                    <div className="note-attachments">
+                                        <Paperclip size={14} />
+                                        <span>{note.attachments.length} attachment{note.attachments.length > 1 ? "s" : ""}</span>
+                                    </div>
+                                )}
+
+                                {note.drawings && (
+                                    <div className="note-drawing-indicator">
+                                        <ImageIcon size={14} />
+                                        <span>Has drawing</span>
+                                    </div>
+                                )}
+
+                                {note.reminder && (
+                                    <div className="note-reminder">
+                                        <Calendar size={14} />
+                                        <span>{formatDate(note.reminder)}</span>
+                                    </div>
+                                )}
+
+                                <div className="note-footer">
+                                    <div className="note-dates">
                                         <small>Updated: {formatDate(note.updated_at)}</small>
-                                    )}
-                                </div>
-                                <div className="note-actions">
-                                    <button className="btn btn-secondary btn-sm" onClick={() => startEdit(note)}>
-                                        <Edit2 size={14} /> Edit
-                                    </button>
-                                    <button className="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(note.id)}>
-                                        <Trash2 size={14} /> Delete
-                                    </button>
+                                    </div>
+                                    <div className="note-actions">
+                                        <button
+                                            className={`btn-icon ${note.archived ? 'active' : ''}`}
+                                            onClick={() => handleToggleArchive(note.id)}
+                                            title={note.archived ? "Unarchive" : "Archive"}
+                                        >
+                                            <Archive size={14} />
+                                        </button>
+                                        <button className="btn btn-secondary btn-sm" onClick={() => startEdit(note)}>
+                                            <Edit2 size={14} /> Edit
+                                        </button>
+                                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(note.id)}>
+                                            <Trash2 size={14} /> Delete
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
                         )
                     })
                 )}

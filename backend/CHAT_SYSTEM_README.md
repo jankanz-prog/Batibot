@@ -10,7 +10,7 @@
 - **Typing Indicators** - See when users are typing
 - **Online Status** - See who's online/offline
 - **Message Types** - Text, attachment, or mixed messages
-- **Message History** - Persistent storage in PostgreSQL
+- **Message History** - Persistent storage in MySQL
 - **User Authentication** - JWT-based WebSocket authentication
 
 ### ✅ **File Upload System**

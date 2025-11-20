@@ -2,13 +2,13 @@
 const { Sequelize } = require('sequelize');
 
 const sequelize = new Sequelize(
-    process.env.DB_NAME || 'Test',
-    process.env.DB_USER || 'postgres',
-    process.env.DB_PASSWORD || 'jankin',
+    process.env.DB_NAME || 'batibot',
+    process.env.DB_USER || 'root',
+    process.env.DB_PASSWORD || '',
     {
         host: process.env.DB_HOST || 'localhost',
-        port: process.env.DB_PORT || 5432,
-        dialect: 'postgres',
+        port: process.env.DB_PORT || 3306,
+        dialect: 'mysql',
         logging: false,
         pool: {
             max: 5,

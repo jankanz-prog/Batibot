@@ -24,6 +24,53 @@ const Note = sequelize.define('Note', {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false
+    },
+    color: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+        defaultValue: null
+    },
+    priority: {
+        type: DataTypes.ENUM('low', 'medium', 'high'),
+        allowNull: false,
+        defaultValue: 'medium'
+    },
+    pinned: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+    },
+    archived: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+    },
+    tags: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        defaultValue: null,
+        validate: {
+            maxTags(value) {
+                if (value && Array.isArray(value) && value.length > 10) {
+                    throw new Error('Maximum 10 tags allowed per note');
+                }
+            }
+        }
+    },
+    attachments: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        defaultValue: null
+    },
+    drawings: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        defaultValue: null
+    },
+    reminder: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        defaultValue: null
     }
 }, {
     tableName: 'notes',

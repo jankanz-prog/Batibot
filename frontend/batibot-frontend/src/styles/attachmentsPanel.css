@@ -1,0 +1,110 @@
+.attachments-panel {
+    margin-bottom: 1.25rem;
+}
+
+.attachments-panel label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+
+.dropzone {
+    border: 2px dashed var(--border-primary);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--bg-tertiary);
+}
+
+.dropzone:hover {
+    border-color: var(--border-accent);
+    background: var(--bg-elevated);
+}
+
+.dropzone.active {
+    border-color: var(--accent-primary);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.dropzone.uploading {
+    border-color: var(--success);
+    background: rgba(16, 185, 129, 0.1);
+    cursor: wait;
+}
+
+.dropzone p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.attachments-list {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.attachment-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+}
+
+.attachment-item:hover {
+    border-color: var(--border-accent);
+    background: var(--bg-tertiary);
+}
+
+.attachment-icon {
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.attachment-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.attachment-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.attachment-meta {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+.attachment-delete {
+    flex-shrink: 0;
+    padding: 0.25rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.attachment-delete:hover {
+    color: var(--error);
+    background: rgba(239, 68, 68, 0.1);
+}
