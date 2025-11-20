@@ -1,4 +1,5 @@
-import React, { useState, KeyboardEvent } from "react"
+import React, { useState } from "react"
+import type { KeyboardEvent } from "react"
 import { X } from "lucide-react"
 import "../../styles/tagEditor.css"
 
@@ -11,6 +12,7 @@ const MAX_TAGS = 10
 
 export const TagEditor: React.FC<TagEditorProps> = ({ tags = [], onChange }) => {
     const [inputValue, setInputValue] = useState("")
+    const [isInputFocused, setIsInputFocused] = useState(false)
     const currentTags = tags || []
 
     const handleAddTag = () => {
@@ -18,16 +20,12 @@ export const TagEditor: React.FC<TagEditorProps> = ({ tags = [], onChange }) => 
         if (!trimmed) return
 
         if (currentTags.length >= MAX_TAGS) {
-            alert(`Maximum ${MAX_TAGS} tags allowed`)
             return
         }
 
-        if (currentTags.includes(trimmed)) {
-            setInputValue("")
-            return
+        if (!currentTags.includes(trimmed)) {
+            onChange([...currentTags, trimmed])
         }
-
-        onChange([...currentTags, trimmed])
         setInputValue("")
     }
 
@@ -40,29 +38,29 @@ export const TagEditor: React.FC<TagEditorProps> = ({ tags = [], onChange }) => 
         }
     }
 
-    const handleRemoveTag = (tagToRemove: string) => {
-        onChange(currentTags.filter(tag => tag !== tagToRemove))
-    }
-
     return (
         <div className="tag-editor">
             <label>
-                Tags <span className="tag-count">({currentTags.length}/{MAX_TAGS})</span>
+                <span>Tags</span>
+                <span className={`tag-count ${currentTags.length >= MAX_TAGS ? 'tag-count-max' : ''}`}>
+                    {currentTags.length}/{MAX_TAGS}
+                </span>
             </label>
-            <div className="tag-input-container">
+            <div className={`tag-input-container ${isInputFocused ? 'tag-input-focused' : ''}`}>
                 {currentTags.map((tag, index) => (
                     <span key={index} className="tag-chip">
                         {tag}
                         <button
                             type="button"
                             className="tag-remove"
-                            onClick={() => handleRemoveTag(tag)}
+                            onClick={() => onChange(currentTags.filter(t => t !== tag))}
                             aria-label={`Remove tag ${tag}`}
                         >
                             <X size={12} />
                         </button>
                     </span>
                 ))}
+                
                 {currentTags.length < MAX_TAGS && (
                     <input
                         type="text"
@@ -70,14 +68,17 @@ export const TagEditor: React.FC<TagEditorProps> = ({ tags = [], onChange }) => 
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        onBlur={handleAddTag}
-                        placeholder="Add tag..."
+                        onFocus={() => setIsInputFocused(true)}
+                        onBlur={() => {
+                            setIsInputFocused(false)
+                            handleAddTag()
+                        }}
+                        placeholder={currentTags.length === 0 ? "Type and press Enter..." : ""}
                         maxLength={50}
                     />
                 )}
             </div>
-            <small className="tag-hint">Press Enter to add, Backspace on empty input to remove last tag</small>
+            <small className="tag-hint">Press Enter to add • Backspace on empty to remove last</small>
         </div>
     )
 }
-

@@ -1,29 +1,43 @@
 .tag-editor {
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
 }
 
 .tag-editor label {
-    display: block;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 0.5rem;
     font-weight: 500;
     font-size: 0.875rem;
-    color: #374151;
+    color: var(--text-primary);
 }
 
 .tag-count {
-    color: #6b7280;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
     font-weight: 400;
 }
 
+.tag-count-max {
+    color: var(--error);
+}
+
 .tag-input-container {
+    min-height: 3rem;
+    padding: 0.5rem;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-primary);
+    border-radius: 0.5rem;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    min-height: 42px;
-    background: white;
+    gap: 0.375rem;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.tag-input-container.tag-input-focused {
+    border-color: var(--accent-primary);
+    background: var(--bg-elevated);
 }
 
 .tag-chip {
@@ -31,42 +45,48 @@
     align-items: center;
     gap: 0.25rem;
     padding: 0.25rem 0.5rem;
-    background: #e0e7ff;
-    color: #3730a3;
-    border-radius: 0.25rem;
-    font-size: 0.875rem;
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--accent-primary);
+    border-radius: 0.375rem;
+    font-size: 0.8125rem;
     font-weight: 500;
 }
 
 .tag-remove {
-    display: flex;
-    align-items: center;
-    padding: 0;
-    background: none;
+    padding: 0.125rem;
+    background: transparent;
     border: none;
     cursor: pointer;
-    color: #4f46e5;
-    transition: color 0.2s;
+    color: var(--accent-primary);
+    display: flex;
+    align-items: center;
+    border-radius: 0.125rem;
+    transition: all 0.2s;
 }
 
 .tag-remove:hover {
-    color: #312e81;
+    color: var(--accent-hover);
+    background: rgba(59, 130, 246, 0.2);
 }
 
 .tag-input {
     flex: 1;
     min-width: 120px;
+    padding: 0.25rem 0.5rem;
     border: none;
-    outline: none;
-    font-size: 0.875rem;
-    padding: 0.25rem;
     background: transparent;
+    font-size: 0.8125rem;
+    color: var(--text-primary);
+    outline: none;
+}
+
+.tag-input::placeholder {
+    color: var(--text-tertiary);
 }
 
 .tag-hint {
     display: block;
-    margin-top: 0.25rem;
-    color: #6b7280;
+    margin-top: 0.375rem;
     font-size: 0.75rem;
+    color: var(--text-secondary);
 }
-

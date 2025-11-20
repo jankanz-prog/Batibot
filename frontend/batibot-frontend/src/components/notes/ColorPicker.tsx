@@ -1,5 +1,4 @@
-import React, { useState } from "react"
-import { HexColorPicker } from "react-colorful"
+import React, { useState, useRef, useEffect } from "react"
 import { X } from "lucide-react"
 import "../../styles/colorPicker.css"
 
@@ -17,6 +16,27 @@ const PRESET_COLORS = [
 
 export const ColorPicker: React.FC<ColorPickerProps> = ({ value, onChange }) => {
     const [showPicker, setShowPicker] = useState(false)
+    const [customColor, setCustomColor] = useState(value || "#ffffff")
+    const pickerRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        if (value && !PRESET_COLORS.includes(value)) {
+            setCustomColor(value)
+        }
+    }, [value])
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+                setShowPicker(false)
+            }
+        }
+
+        if (showPicker) {
+            document.addEventListener("mousedown", handleClickOutside)
+            return () => document.removeEventListener("mousedown", handleClickOutside)
+        }
+    }, [showPicker])
 
     return (
         <div className="color-picker-wrapper">
@@ -33,58 +53,67 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ value, onChange }) => 
                             title={color}
                         />
                     ))}
+                </div>
+                
+                <div className="custom-color-controls">
                     <button
                         type="button"
-                        className="color-preset color-clear"
-                        onClick={() => onChange(null)}
-                        title="Clear Color"
+                        className="custom-color-btn"
+                        onClick={() => setShowPicker(!showPicker)}
+                        style={{
+                            backgroundColor: value && !PRESET_COLORS.includes(value) ? value : undefined,
+                            color: value && !PRESET_COLORS.includes(value) ? "#fff" : undefined,
+                            textShadow: value && !PRESET_COLORS.includes(value) ? "0 1px 2px rgba(0,0,0,0.2)" : "none"
+                        }}
                     >
-                        <X size={14} />
+                        {value && !PRESET_COLORS.includes(value) ? `Custom: ${value}` : "Custom Color"}
                     </button>
-                </div>
-                <button
-                    type="button"
-                    className="custom-color-btn"
-                    onClick={() => setShowPicker(!showPicker)}
-                >
-                    {value ? (
-                        <div
-                            className="selected-color"
-                            style={{ backgroundColor: value }}
-                        />
-                    ) : (
-                        "Custom Color"
+                    
+                    {value && (
+                        <button
+                            type="button"
+                            className="color-clear-btn"
+                            onClick={() => onChange(null)}
+                            title="Clear color"
+                        >
+                            <X size={16} />
+                        </button>
                     )}
-                </button>
+                </div>
+
                 {showPicker && (
-                    <div className="color-picker-popup">
-                        <HexColorPicker
-                            color={value || "#ffffff"}
-                            onChange={onChange}
+                    <div ref={pickerRef} className="color-picker-popup">
+                        <input
+                            type="color"
+                            value={customColor}
+                            onChange={(e) => {
+                                setCustomColor(e.target.value)
+                                onChange(e.target.value)
+                            }}
+                            className="color-input-visual"
                         />
-                        <div className="color-picker-actions">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    onChange(null)
-                                    setShowPicker(false)
-                                }}
-                                className="btn-clear"
-                            >
-                                Clear
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowPicker(false)}
-                                className="btn-close"
-                            >
-                                Close
-                            </button>
-                        </div>
+                        <input
+                            type="text"
+                            value={customColor}
+                            onChange={(e) => {
+                                setCustomColor(e.target.value)
+                                if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                                    onChange(e.target.value)
+                                }
+                            }}
+                            className="color-input-text"
+                            placeholder="#000000"
+                        />
+                        <button
+                            type="button"
+                            className="color-picker-done"
+                            onClick={() => setShowPicker(false)}
+                        >
+                            Done
+                        </button>
                     </div>
                 )}
             </div>
         </div>
     )
 }
-

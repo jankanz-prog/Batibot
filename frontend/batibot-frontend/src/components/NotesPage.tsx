@@ -326,7 +326,17 @@ export const NotesPage: React.FC = () => {
         try {
             setError(null)
             const res = await notesAPI.uploadAttachments(id, files, token)
-            if (res.success) {
+            if (res.success && res.data) {
+                // Update editForm immediately with new attachments
+                if (editingNote && editingNote.id === id) {
+                    setEditForm(prev => ({
+                        ...prev,
+                        attachments: res.data.attachments || null
+                    }))
+                    // Also update editingNote to keep in sync
+                    setEditingNote(res.data)
+                }
+                // Refresh notes list to update displayed notes
                 await fetchNotes()
             } else {
                 setError(res.message || "Failed to upload attachments")
@@ -351,7 +361,17 @@ export const NotesPage: React.FC = () => {
         try {
             setError(null)
             const res = await notesAPI.updateDrawings(drawingNoteId, drawingData, token)
-            if (res.success) {
+            if (res.success && res.data) {
+                // Update editForm immediately with new drawing
+                if (editingNote && editingNote.id === drawingNoteId) {
+                    setEditForm(prev => ({
+                        ...prev,
+                        drawings: res.data.drawings || null
+                    }))
+                    // Also update editingNote to keep in sync
+                    setEditingNote(res.data)
+                }
+                // Refresh notes list to update displayed notes
                 await fetchNotes()
                 setShowDrawingModal(false)
                 setDrawingNoteId(null)
